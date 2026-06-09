@@ -324,14 +324,17 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 
 <script>
 function localDateStr() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,"0");
-  const day = String(d.getDate()).padStart(2,"0");
-  return y+"-"+m+"-"+day;
+  // Use Madrid timezone to match the server
+  const madridDate = new Date().toLocaleDateString("es-ES", {
+    timeZone: "Europe/Madrid",
+    year: "numeric", month: "2-digit", day: "2-digit"
+  });
+  // es-ES returns dd/mm/yyyy, convert to yyyy-mm-dd for input[type=date]
+  const [day, month, year] = madridDate.split("/");
+  return year + "-" + month + "-" + day;
 }
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx025fpRUQIwdcs6lHB3lrjZywqc-QkX6SENNd_Q3FILBt6jjqyyO5Er-vJY_fNJ4qh/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbw19pXuQChZYf_LfwjYVdUHcMyCsyDZRQVTHz1se-S5wU08x_A89m6OLlvWEtssmxfW/exec";
 const TOKEN_KEY = "ped_token";
 const TOKEN_EXPIRY_KEY = "ped_token_expiry";
 
@@ -468,8 +471,9 @@ function fechaToInput(f) {
   return "";
 }
 function estadoLoz(e) {
+  const s = (e||"").trim();
   const map = {"Pendiente de pedido":"loz-pendiente","Pedido":"loz-pedido","Enviado":"loz-enviado","Entregado":"loz-entregado"};
-  return `<span class="loz ${map[e]||''}">${sanitize(e)}</span>`;
+  return `<span class="loz ${map[s]||'loz-pendiente'}">${sanitize(s)||"—"}</span>`;
 }
 
 // ── ITEMS FORM ───────────────────────────────────────────────
@@ -651,8 +655,8 @@ function abrirEditar(id) {
   document.getElementById("e-id").value = p["ID"]||"";
   document.getElementById("e-nombre").value = p["Nombre cliente"]||"";
   document.getElementById("e-fecha").value = fechaToInput(p["Fecha"]||"");
-  document.getElementById("e-pago").value = p["Método de pago"]||"";
-  document.getElementById("e-estado").value = p["Estado"]||"";
+  document.getElementById("e-pago").value = (p["Método de pago"]||"").trim();
+  document.getElementById("e-estado").value = (p["Estado"]||"").trim();
   const pagadoVal = p["Pagado"]||"No";
   document.getElementById("e-pagado").value = (pagadoVal==="Sí") ? "Si" : pagadoVal;
   document.getElementById("e-notas").value = p["Notas"]||"";
