@@ -9,21 +9,19 @@
     --bg: #f7f6f3; --surface: #ffffff; --border: #e2e0da; --text: #1a1a18;
     --muted: #7a7870; --accent: #1a3a5c; --accent-light: #e8f0f8;
     --green: #1d6b4a; --green-bg: #e6f4ee; --amber: #8a5a00; --amber-bg: #fdf3dc;
-    --red: #8b2020; --red-bg: #fdeaea; --gray: #5a5956; --gray-bg: #f0efeb;
-    --radius: 10px; --radius-sm: 6px;
+    --red: #8b2020; --red-bg: #fdeaea; --radius: 10px; --radius-sm: 6px;
   }
   @media (prefers-color-scheme: dark) {
     :root {
       --bg: #16161a; --surface: #1e1e24; --border: #2e2e38; --text: #e8e6df;
       --muted: #888680; --accent: #6fa3d8; --accent-light: #1a2a3a;
       --green: #5dc8a0; --green-bg: #0d2a1e; --amber: #e8b84b; --amber-bg: #2a1e08;
-      --red: #f08080; --red-bg: #2a0e0e; --gray: #a0a09a; --gray-bg: #252528;
+      --red: #f08080; --red-bg: #2a0e0e;
     }
   }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.5; min-height: 100vh; }
 
-  /* LOGIN */
   #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
   .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 28px; width: 100%; max-width: 360px; }
   .login-box h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; color: var(--accent); }
@@ -34,13 +32,12 @@
   .login-field input:focus { outline: none; border-color: var(--accent); }
   .login-btn { width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 6px; transition: opacity .15s; }
   .login-btn:hover { opacity: .9; }
+  .login-btn:disabled { opacity: .5; cursor: not-allowed; }
   .login-error { font-size: 13px; color: var(--red); margin-top: 10px; min-height: 18px; text-align: center; }
-  .login-attempts { font-size: 12px; color: var(--muted); text-align: center; margin-top: 8px; }
 
-  /* APP */
   #app-screen { display: none; }
   header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  header h1 { font-size: 17px; font-weight: 600; color: var(--accent); letter-spacing: -0.3px; }
+  header h1 { font-size: 17px; font-weight: 600; color: var(--accent); }
   .header-right { display: flex; align-items: center; gap: 10px; }
   .logout-btn { font-size: 12px; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 10px; cursor: pointer; }
   .logout-btn:hover { background: var(--bg); }
@@ -50,11 +47,11 @@
   main { padding: 16px; max-width: 860px; margin: 0 auto; }
   .section { display: none; }
   .section.visible { display: block; }
-  .page-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+  .page-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
   .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
   .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
   .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 4px; }
-  .stat-card .value { font-size: 22px; font-weight: 600; color: var(--text); }
+  .stat-card .value { font-size: 22px; font-weight: 600; }
   .stat-card .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
   .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
   .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
@@ -62,7 +59,7 @@
   .card-id { font-size: 11px; color: var(--muted); margin-top: 2px; }
   .card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; font-size: 13px; }
   .card-body .field { color: var(--muted); }
-  .card-body .val { color: var(--text); font-weight: 500; }
+  .card-body .val { font-weight: 500; }
   .card-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
   .card-actions button { flex: 1; padding: 7px; border: 1px solid var(--border); background: transparent; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; color: var(--text); transition: background .12s; }
   .card-actions button:hover { background: var(--bg); }
@@ -84,7 +81,7 @@
   .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
   .form-group textarea { resize: vertical; min-height: 70px; }
   .btn { padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; border: 1px solid transparent; }
-  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary { background: var(--accent); color: #fff; }
   .btn-primary:hover { opacity: .9; }
   .btn-secondary { background: transparent; color: var(--text); border-color: var(--border); }
   .btn-secondary:hover { background: var(--bg); }
@@ -104,60 +101,48 @@
   .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
   .bar { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; transition: height .4s; min-height: 4px; }
   .bar-label { font-size: 10px; color: var(--muted); text-align: center; }
-  .bar-val { font-size: 11px; font-weight: 600; color: var(--text); }
-  .change-pw-link { font-size: 12px; color: var(--accent); cursor: pointer; text-decoration: underline; display: block; margin-top: 16px; }
+  .bar-val { font-size: 11px; font-weight: 600; }
+  .info-box { background: var(--accent-light); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; color: var(--accent); margin-bottom: 14px; line-height: 1.6; }
+  .info-box code { background: rgba(0,0,0,.08); padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 12px; }
 </style>
 </head>
 <body>
 
-<!-- PANTALLA DE LOGIN -->
+<!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
     <h2>⚽ Pedidos de camisetas</h2>
-    <p>Acceso privado — introduce tu contraseña</p>
+    <p>Acceso privado</p>
+    <div class="login-field">
+      <label>Usuario</label>
+      <input type="text" id="login-user" placeholder="Tu usuario" maxlength="50" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
+    </div>
     <div class="login-field">
       <label>Contraseña</label>
-      <input type="password" id="login-pw" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+      <input type="password" id="login-pw" placeholder="••••••••" maxlength="100" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
     </div>
-    <button class="login-btn" onclick="doLogin()">Entrar</button>
+    <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
     <div class="login-error" id="login-error"></div>
-    <div class="login-attempts" id="login-attempts"></div>
-
-    <div id="first-setup" style="display:none; margin-top:20px; padding-top:16px; border-top:1px solid var(--border);">
-      <p style="font-size:13px; color:var(--muted); margin-bottom:12px;">Primera vez: elige una contraseña</p>
-      <div class="login-field">
-        <label>Nueva contraseña</label>
-        <input type="password" id="setup-pw1" placeholder="Mínimo 6 caracteres">
-      </div>
-      <div class="login-field">
-        <label>Repite la contraseña</label>
-        <input type="password" id="setup-pw2" placeholder="Repite la contraseña" onkeydown="if(event.key==='Enter')doSetup()">
-      </div>
-      <button class="login-btn" onclick="doSetup()">Crear contraseña</button>
-      <div class="login-error" id="setup-error"></div>
-    </div>
   </div>
 </div>
 
-<!-- APP PRINCIPAL -->
+<!-- APP -->
 <div id="app-screen">
   <header>
     <h1>⚽ Pedidos de camisetas</h1>
     <div class="header-right">
-      <span id="connection-status" style="font-size:12px; color:var(--muted);">Cargando...</span>
+      <span id="connection-status" style="font-size:12px;color:var(--muted);">—</span>
       <button class="logout-btn" onclick="doLogout()">Salir</button>
     </div>
   </header>
-
   <nav>
-    <button class="active" onclick="showSection('resumen', this)">Resumen</button>
-    <button onclick="showSection('pedidos', this)">Pedidos</button>
-    <button onclick="showSection('nuevo', this)">+ Nuevo</button>
-    <button onclick="showSection('ajustes', this)">Ajustes</button>
+    <button class="active" onclick="showSection('resumen',this)">Resumen</button>
+    <button onclick="showSection('pedidos',this)">Pedidos</button>
+    <button onclick="showSection('nuevo',this)">+ Nuevo</button>
+    <button onclick="showSection('ajustes',this)">Ajustes</button>
   </nav>
-
   <main>
-    <!-- RESUMEN -->
+
     <section id="s-resumen" class="section visible">
       <p class="page-title">Resumen</p>
       <div class="stats-grid">
@@ -178,7 +163,6 @@
       </div>
     </section>
 
-    <!-- PEDIDOS -->
     <section id="s-pedidos" class="section">
       <p class="page-title">Todos los pedidos</p>
       <div class="filter-bar">
@@ -195,7 +179,6 @@
       <div id="pedidos-list"></div>
     </section>
 
-    <!-- NUEVO PEDIDO -->
     <section id="s-nuevo" class="section">
       <p class="page-title">Nuevo pedido</p>
       <div class="card">
@@ -205,7 +188,7 @@
           <div class="form-group"><label>Versión de la camiseta</label>
             <select id="f-version"><option value="">Selecciona...</option><option>Fan</option><option>Retro</option><option>Player</option><option>Kids</option><option>Woman</option></select>
           </div>
-          <div class="form-group"><label>Talla / diseño</label><input type="text" id="f-talla" placeholder="Ej. XL, adulto..." maxlength="50"></div>
+          <div class="form-group"><label>Talla / diseño</label><input type="text" id="f-talla" placeholder="Ej. XL" maxlength="50"></div>
           <div class="form-group full"><label>Personalización (nombre, número, parche)</label><input type="text" id="f-personalizacion" placeholder="Ej. Messi 10, parche Liga" maxlength="150"></div>
           <div class="form-group"><label>Precio (€)</label><input type="number" id="f-precio" placeholder="0.00" step="0.01" min="0" max="9999"></div>
           <div class="form-group"><label>Método de pago</label>
@@ -214,7 +197,7 @@
           <div class="form-group"><label>Estado inicial</label>
             <select id="f-estado"><option>Pendiente</option><option>En proceso</option><option>Entregado</option></select>
           </div>
-          <div class="form-group full"><label>Notas (opcional)</label><textarea id="f-notas" placeholder="Observaciones, detalles especiales..." maxlength="300"></textarea></div>
+          <div class="form-group full"><label>Notas (opcional)</label><textarea id="f-notas" placeholder="Observaciones..." maxlength="300"></textarea></div>
         </div>
         <div class="btn-row">
           <button class="btn btn-primary" onclick="guardarPedido()">Guardar pedido</button>
@@ -223,25 +206,23 @@
       </div>
     </section>
 
-    <!-- AJUSTES -->
     <section id="s-ajustes" class="section">
       <p class="page-title">Ajustes</p>
       <div class="card">
-        <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Conexión con Google Sheets</div>
-        <div id="config-status" style="font-size:13px;color:var(--muted);margin-bottom:12px;">Comprobando...</div>
-        <div class="btn-row">
-          <button class="btn btn-secondary" onclick="cargarDatos()">↺ Recargar datos</button>
-        </div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Estado de la conexión</div>
+        <div id="config-status" style="font-size:13px;color:var(--muted);margin-bottom:12px;">—</div>
+        <button class="btn btn-secondary" onclick="cargarDatos()">↺ Recargar datos</button>
       </div>
       <div class="card">
-        <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Cambiar contraseña</div>
-        <div class="form-group" style="margin-bottom:10px;"><label>Contraseña actual</label><input type="password" id="cp-actual" maxlength="100"></div>
-        <div class="form-group" style="margin-bottom:10px;"><label>Nueva contraseña</label><input type="password" id="cp-nueva" maxlength="100"></div>
-        <div class="form-group" style="margin-bottom:10px;"><label>Repetir nueva contraseña</label><input type="password" id="cp-repetir" maxlength="100"></div>
-        <div class="btn-row"><button class="btn btn-primary" onclick="cambiarPassword()">Cambiar contraseña</button></div>
-        <div class="login-error" id="cp-error"></div>
+        <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Cómo añadir usuarios</div>
+        <div class="info-box">
+          Para añadir o cambiar usuarios, ve a tu Google Sheet, abre la hoja <code>Usuarios</code> y añade una fila con el nombre de usuario y el hash SHA-256 de la contraseña.<br><br>
+          Puedes generar el hash en: <a href="https://emn178.github.io/online-tools/sha256.html" target="_blank" style="color:var(--accent);">emn178.github.io/online-tools/sha256.html</a>
+        </div>
+        <div style="font-size:13px;color:var(--muted);">La sesión dura 8 horas y se invalida al pulsar "Salir".</div>
       </div>
     </section>
+
   </main>
 </div>
 
@@ -278,15 +259,11 @@
 
 <script>
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzwjYh1r-audkrh3GJFcACn6AYkHC8JtVa3RzUTftSfER1ghjrc9FdZY95LwH8HHHRM/exec";
-const MAX_ATTEMPTS = 5;
-const LOCKOUT_MS = 5 * 60 * 1000;
-const SESSION_KEY = "camisetas_session";
-const PW_KEY = "camisetas_pw_hash";
-const ATTEMPTS_KEY = "camisetas_attempts";
-const LOCKOUT_KEY = "camisetas_lockout";
+const TOKEN_KEY = "ped_token";
+const TOKEN_EXPIRY_KEY = "ped_token_expiry";
 
 let pedidos = [];
-let sessionActive = false;
+let sessionToken = null;
 
 async function sha256(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
@@ -294,134 +271,91 @@ async function sha256(str) {
 }
 
 function sanitize(str) {
-  if (typeof str !== "string") return String(str ?? "");
-  return str
-    .replace(/&/g,"&amp;")
-    .replace(/</g,"&lt;")
-    .replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;")
-    .replace(/'/g,"&#x27;")
-    .replace(/\//g,"&#x2F;");
+  return String(str ?? "")
+    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/"/g,"&quot;").replace(/'/g,"&#x27;");
 }
 
-function validateField(value, maxLen = 200) {
-  if (typeof value !== "string") value = String(value ?? "");
-  return value.trim().slice(0, maxLen);
+function validateField(value, maxLen) {
+  return String(value ?? "").trim().slice(0, maxLen);
 }
 
-function isLockedOut() {
-  const lockout = localStorage.getItem(LOCKOUT_KEY);
-  if (!lockout) return false;
-  if (Date.now() < parseInt(lockout)) return true;
-  localStorage.removeItem(LOCKOUT_KEY);
-  localStorage.removeItem(ATTEMPTS_KEY);
-  return false;
-}
-
-function getRemainingLockout() {
-  const lockout = localStorage.getItem(LOCKOUT_KEY);
-  if (!lockout) return 0;
-  return Math.max(0, Math.ceil((parseInt(lockout) - Date.now()) / 60000));
-}
-
-function initLogin() {
-  const hasPassword = !!localStorage.getItem(PW_KEY);
-  if (!hasPassword) {
-    document.getElementById("login-field-wrap") && (document.getElementById("login-field-wrap").style.display = "none");
-    document.getElementById("first-setup").style.display = "block";
-    document.querySelector(".login-btn").style.display = "none";
+async function apiCall(params) {
+  const url = SCRIPT_URL + "?" + new URLSearchParams(params).toString();
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.auth === false) {
+      showToast("Sesión expirada, vuelve a entrar");
+      doLogoutLocal();
+      return null;
+    }
+    return data;
+  } catch (e) {
+    showToast("Error de conexión");
+    return null;
   }
-  if (isLockedOut()) {
-    document.getElementById("login-error").textContent = `Demasiados intentos. Espera ${getRemainingLockout()} min.`;
-    document.getElementById("login-pw").disabled = true;
-    document.querySelector(".login-btn").disabled = true;
-  }
-  const attempts = parseInt(localStorage.getItem(ATTEMPTS_KEY) || "0");
-  if (attempts > 0 && !isLockedOut()) {
-    document.getElementById("login-attempts").textContent = `Intentos fallidos: ${attempts}/${MAX_ATTEMPTS}`;
-  }
-}
-
-async function doSetup() {
-  const pw1 = document.getElementById("setup-pw1").value;
-  const pw2 = document.getElementById("setup-pw2").value;
-  const err = document.getElementById("setup-error");
-  if (pw1.length < 6) { err.textContent = "La contraseña debe tener al menos 6 caracteres"; return; }
-  if (pw1 !== pw2) { err.textContent = "Las contraseñas no coinciden"; return; }
-  const hash = await sha256(pw1);
-  localStorage.setItem(PW_KEY, hash);
-  err.textContent = "";
-  showToast("Contraseña creada ✓");
-  setTimeout(() => location.reload(), 800);
 }
 
 async function doLogin() {
-  if (isLockedOut()) {
-    document.getElementById("login-error").textContent = `Bloqueado. Espera ${getRemainingLockout()} min.`;
-    return;
-  }
+  const user = document.getElementById("login-user").value.trim();
   const pw = document.getElementById("login-pw").value;
-  if (!pw) { document.getElementById("login-error").textContent = "Introduce la contraseña"; return; }
+  const err = document.getElementById("login-error");
+  const btn = document.getElementById("login-btn");
+
+  if (!user || !pw) { err.textContent = "Introduce usuario y contraseña"; return; }
+
+  btn.disabled = true;
+  btn.textContent = "Comprobando...";
+  err.textContent = "";
+
   const hash = await sha256(pw);
-  const stored = localStorage.getItem(PW_KEY);
-  if (hash === stored) {
-    localStorage.removeItem(ATTEMPTS_KEY);
-    localStorage.removeItem(LOCKOUT_KEY);
-    sessionStorage.setItem(SESSION_KEY, "1");
-    sessionActive = true;
+  const res = await apiCall({ action: "login", user, hash });
+
+  btn.disabled = false;
+  btn.textContent = "Entrar";
+
+  if (res && res.ok) {
+    sessionToken = res.token;
+    sessionStorage.setItem(TOKEN_KEY, res.token);
+    sessionStorage.setItem(TOKEN_EXPIRY_KEY, res.expiry);
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("app-screen").style.display = "block";
+    document.getElementById("login-pw").value = "";
     cargarDatos();
   } else {
-    let attempts = parseInt(localStorage.getItem(ATTEMPTS_KEY) || "0") + 1;
-    localStorage.setItem(ATTEMPTS_KEY, attempts);
-    if (attempts >= MAX_ATTEMPTS) {
-      localStorage.setItem(LOCKOUT_KEY, Date.now() + LOCKOUT_MS);
-      document.getElementById("login-error").textContent = "Demasiados intentos. Bloqueado 5 minutos.";
-      document.getElementById("login-pw").disabled = true;
-      document.querySelector(".login-btn").disabled = true;
-    } else {
-      document.getElementById("login-error").textContent = `Contraseña incorrecta (${attempts}/${MAX_ATTEMPTS} intentos)`;
-      document.getElementById("login-attempts").textContent = `${MAX_ATTEMPTS - attempts} intentos restantes`;
-    }
+    err.textContent = (res && res.error) ? res.error : "Error al conectar";
     document.getElementById("login-pw").value = "";
   }
 }
 
-function doLogout() {
-  sessionStorage.removeItem(SESSION_KEY);
-  sessionActive = false;
+async function doLogout() {
+  if (sessionToken) {
+    await apiCall({ action: "logout", token: sessionToken });
+  }
+  doLogoutLocal();
+}
+
+function doLogoutLocal() {
+  sessionToken = null;
   pedidos = [];
+  sessionStorage.removeItem(TOKEN_KEY);
+  sessionStorage.removeItem(TOKEN_EXPIRY_KEY);
   document.getElementById("app-screen").style.display = "none";
   document.getElementById("login-screen").style.display = "flex";
+  document.getElementById("login-user").value = "";
   document.getElementById("login-pw").value = "";
   document.getElementById("login-error").textContent = "";
 }
 
-async function cambiarPassword() {
-  const actual = document.getElementById("cp-actual").value;
-  const nueva = document.getElementById("cp-nueva").value;
-  const repetir = document.getElementById("cp-repetir").value;
-  const err = document.getElementById("cp-error");
-  const hashActual = await sha256(actual);
-  if (hashActual !== localStorage.getItem(PW_KEY)) { err.textContent = "La contraseña actual no es correcta"; return; }
-  if (nueva.length < 6) { err.textContent = "La nueva contraseña debe tener al menos 6 caracteres"; return; }
-  if (nueva !== repetir) { err.textContent = "Las contraseñas no coinciden"; return; }
-  const hashNueva = await sha256(nueva);
-  localStorage.setItem(PW_KEY, hashNueva);
-  err.textContent = "";
-  ["cp-actual","cp-nueva","cp-repetir"].forEach(id => document.getElementById(id).value = "");
-  showToast("Contraseña actualizada ✓");
-}
-
 function checkSession() {
-  if (sessionStorage.getItem(SESSION_KEY) === "1" && localStorage.getItem(PW_KEY)) {
-    sessionActive = true;
+  const token = sessionStorage.getItem(TOKEN_KEY);
+  const expiry = parseInt(sessionStorage.getItem(TOKEN_EXPIRY_KEY) || "0");
+  if (token && Date.now() < expiry) {
+    sessionToken = token;
     document.getElementById("login-screen").style.display = "none";
     document.getElementById("app-screen").style.display = "block";
     cargarDatos();
-  } else {
-    initLogin();
   }
 }
 
@@ -434,29 +368,18 @@ function showSection(id, btn) {
   if (id === "pedidos") renderPedidos();
 }
 
-async function apiCall(params) {
-  const url = SCRIPT_URL + "?" + new URLSearchParams(params).toString();
-  try {
-    const res = await fetch(url);
-    return await res.json();
-  } catch (e) {
-    showToast("Error de conexión");
-    return null;
-  }
-}
-
 async function cargarDatos() {
   document.getElementById("connection-status").textContent = "⏳ Cargando...";
-  const data = await apiCall({ action: "getPedidos" });
+  const data = await apiCall({ action: "getPedidos", token: sessionToken });
   if (data && data.pedidos) {
     pedidos = data.pedidos;
     document.getElementById("connection-status").textContent = "✅ " + pedidos.length + " pedidos";
-    document.getElementById("config-status").textContent = "✅ Conexión correcta. " + pedidos.length + " pedidos cargados.";
+    document.getElementById("config-status").textContent = "✅ Conexión correcta · " + pedidos.length + " pedidos cargados";
     renderResumen();
     renderPedidos();
-  } else {
+  } else if (data) {
     document.getElementById("connection-status").textContent = "❌ Error";
-    document.getElementById("config-status").textContent = "❌ No se pudo conectar con Google Sheets.";
+    document.getElementById("config-status").textContent = "❌ No se pudo conectar con Google Sheets";
   }
 }
 
@@ -516,22 +439,20 @@ function renderPedidos() {
     const version = sanitize(p["Versión camiseta"] || "—");
     const talla = sanitize(p["Talla / diseño"] || "—");
     const pers = sanitize(p["Camiseta (nombre/número/parche)"] || "—");
-    const precio = parseFloat(p["Precio (€)"]) || 0;
+    const precio = (parseFloat(p["Precio (€)"]) || 0).toFixed(2);
     const pago2 = sanitize(p["Método de pago"] || "—");
     const estado = sanitize(p["Estado"]);
     const notas = p["Notas"] ? sanitize(p["Notas"]) : "";
-    const badgeClass = estadoBadge[p["Estado"]] || "";
-    const dataAttr = encodeURIComponent(JSON.stringify(p));
     return `<div class="card">
       <div class="card-header">
         <div><div class="card-name">${nombre}</div><div class="card-id">${id} · ${fecha}</div></div>
-        <span class="badge ${badgeClass}">${estado}</span>
+        <span class="badge ${estadoBadge[p["Estado"]] || ""}">${estado}</span>
       </div>
       <div class="card-body">
         <span class="field">Versión</span><span class="val">${version}</span>
         <span class="field">Talla</span><span class="val">${talla}</span>
         <span class="field">Personalización</span><span class="val">${pers}</span>
-        <span class="field">Precio</span><span class="val">${precio.toFixed(2)} €</span>
+        <span class="field">Precio</span><span class="val">${precio} €</span>
         <span class="field">Pago</span><span class="val"><span class="pago-badge">${pago2}</span></span>
         ${notas ? `<span class="field">Notas</span><span class="val">${notas}</span>` : ""}
       </div>
@@ -550,8 +471,7 @@ document.getElementById("f-fecha").value = today;
 async function guardarPedido() {
   const nombre = validateField(document.getElementById("f-nombre").value, 100);
   if (!nombre) { showToast("El nombre es obligatorio"); return; }
-  const precio = parseFloat(document.getElementById("f-precio").value) || 0;
-  if (precio < 0 || precio > 9999) { showToast("Precio no válido"); return; }
+  const precio = Math.min(Math.max(parseFloat(document.getElementById("f-precio").value) || 0, 0), 9999);
   const data = {
     nombre,
     fecha: validateField(document.getElementById("f-fecha").value, 20),
@@ -563,7 +483,7 @@ async function guardarPedido() {
     estado: validateField(document.getElementById("f-estado").value, 20),
     notas: validateField(document.getElementById("f-notas").value, 300)
   };
-  const res = await apiCall({ action: "addPedido", data: JSON.stringify(data) });
+  const res = await apiCall({ action: "addPedido", token: sessionToken, data: JSON.stringify(data) });
   if (res && res.ok) { showToast("Pedido guardado ✓"); limpiarForm(); await cargarDatos(); }
 }
 
@@ -593,10 +513,9 @@ function abrirEditarById(id) {
 function cerrarModal() { document.getElementById("modal-editar").classList.remove("open"); }
 
 async function actualizarPedido() {
-  const id = document.getElementById("e-id").value;
-  const precio = parseFloat(document.getElementById("e-precio").value) || 0;
+  const precio = Math.min(Math.max(parseFloat(document.getElementById("e-precio").value) || 0, 0), 9999);
   const data = {
-    "ID": id,
+    "ID": document.getElementById("e-id").value,
     "Fecha": validateField(document.getElementById("e-fecha").value, 20),
     "Nombre cliente": validateField(document.getElementById("e-nombre").value, 100),
     "Versión camiseta": validateField(document.getElementById("e-version").value, 20),
@@ -607,7 +526,7 @@ async function actualizarPedido() {
     "Estado": validateField(document.getElementById("e-estado").value, 20),
     "Notas": validateField(document.getElementById("e-notas").value, 300)
   };
-  const res = await apiCall({ action: "updatePedido", data: JSON.stringify(data) });
+  const res = await apiCall({ action: "updatePedido", token: sessionToken, data: JSON.stringify(data) });
   if (res && res.ok) { showToast("Pedido actualizado ✓"); cerrarModal(); await cargarDatos(); }
 }
 
@@ -616,13 +535,13 @@ async function marcarEntregado(id) {
   if (!p) return;
   const data = { ...p, "Estado": "Entregado" };
   delete data._row;
-  const res = await apiCall({ action: "updatePedido", data: JSON.stringify(data) });
+  const res = await apiCall({ action: "updatePedido", token: sessionToken, data: JSON.stringify(data) });
   if (res && res.ok) { showToast("Marcado como entregado ✓"); await cargarDatos(); }
 }
 
 async function eliminarPedido(id) {
   if (!confirm("¿Borrar este pedido? Esta acción no se puede deshacer.")) return;
-  const res = await apiCall({ action: "deletePedido", id });
+  const res = await apiCall({ action: "deletePedido", token: sessionToken, id });
   if (res && res.ok) { showToast("Pedido eliminado"); await cargarDatos(); }
 }
 
