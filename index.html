@@ -3,107 +3,153 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Gestión de pedidos</title>
+<title>Vibe coded by pperezmo</title>
 <style>
-  :root {
-    --bg: #f7f6f3; --surface: #ffffff; --border: #e2e0da; --text: #1a1a18;
-    --muted: #7a7870; --accent: #1a3a5c; --accent-light: #e8f0f8;
-    --green: #1d6b4a; --green-bg: #e6f4ee; --amber: #8a5a00; --amber-bg: #fdf3dc;
-    --red: #8b2020; --red-bg: #fdeaea; --radius: 10px; --radius-sm: 6px;
-  }
-  @media (prefers-color-scheme: dark) {
-    :root {
-      --bg: #16161a; --surface: #1e1e24; --border: #2e2e38; --text: #e8e6df;
-      --muted: #888680; --accent: #6fa3d8; --accent-light: #1a2a3a;
-      --green: #5dc8a0; --green-bg: #0d2a1e; --amber: #e8b84b; --amber-bg: #2a1e08;
-      --red: #f08080; --red-bg: #2a0e0e;
-    }
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.5; min-height: 100vh; }
+:root {
+  --bg:#f4f5f7;--surface:#fff;--border:#dfe1e6;--text:#172b4d;--muted:#6b778c;
+  --accent:#0052cc;--accent-bg:#deebff;--accent-hover:#0065ff;
+  --green:#006644;--green-bg:#e3fcef;--green-mid:#00875a;
+  --amber:#974f0c;--amber-bg:#fff7e6;
+  --red:#bf2600;--red-bg:#ffebe6;
+  --purple:#403294;--purple-bg:#eae6ff;
+  --blue2:#0747a6;--blue2-bg:#deebff;
+  --gray:#42526e;--gray-bg:#f4f5f7;
+  --radius:4px;--radius-md:6px;
+  --shadow:0 1px 3px rgba(9,30,66,.13),0 0 0 1px rgba(9,30,66,.08);
+  --shadow-md:0 4px 8px rgba(9,30,66,.15),0 0 0 1px rgba(9,30,66,.08);
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:14px;line-height:1.5;}
 
-  #login-screen { display: flex; align-items: center; justify-content: center; min-height: 100vh; padding: 20px; }
-  .login-box { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 32px 28px; width: 100%; max-width: 360px; }
-  .login-box h2 { font-size: 20px; font-weight: 600; margin-bottom: 6px; color: var(--accent); }
-  .login-box p { font-size: 13px; color: var(--muted); margin-bottom: 24px; }
-  .login-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 14px; }
-  .login-field label { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
-  .login-field input { padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 14px; transition: border-color .15s; }
-  .login-field input:focus { outline: none; border-color: var(--accent); }
-  .login-btn { width: 100%; padding: 11px; background: var(--accent); color: #fff; border: none; border-radius: var(--radius-sm); font-size: 15px; font-weight: 500; cursor: pointer; margin-top: 6px; transition: opacity .15s; }
-  .login-btn:hover { opacity: .9; }
-  .login-btn:disabled { opacity: .5; cursor: not-allowed; }
-  .login-error { font-size: 13px; color: var(--red); margin-top: 10px; min-height: 18px; text-align: center; }
+/* LOGIN */
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;background:var(--bg);}
+.login-box{background:var(--surface);border-radius:var(--radius-md);padding:40px 36px;width:100%;max-width:380px;box-shadow:var(--shadow-md);}
+.login-logo{font-size:22px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+.login-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
+.lf{display:flex;flex-direction:column;gap:4px;margin-bottom:16px;}
+.lf label{font-size:12px;font-weight:600;color:var(--text);}
+.lf input{padding:9px 10px;border:2px solid var(--border);border-radius:var(--radius);font-size:14px;color:var(--text);background:var(--surface);transition:border-color .15s;}
+.lf input:focus{outline:none;border-color:var(--accent);}
+.login-btn{width:100%;padding:10px;background:var(--accent);color:#fff;border:none;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;transition:background .15s;}
+.login-btn:hover{background:var(--accent-hover);}
+.login-btn:disabled{opacity:.6;cursor:not-allowed;}
+.login-err{font-size:13px;color:var(--red);margin-top:10px;min-height:16px;text-align:center;}
 
-  #app-screen { display: none; }
-  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
-  header h1 { font-size: 17px; font-weight: 600; color: var(--accent); }
-  .header-right { display: flex; align-items: center; gap: 10px; }
-  .logout-btn { font-size: 12px; color: var(--muted); background: transparent; border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 4px 10px; cursor: pointer; }
-  .logout-btn:hover { background: var(--bg); }
-  nav { display: flex; gap: 4px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
-  nav button { padding: 7px 14px; border: 1px solid var(--border); background: transparent; border-radius: 20px; font-size: 13px; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all .15s; }
-  nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 500; }
-  main { padding: 16px; max-width: 860px; margin: 0 auto; }
-  .section { display: none; }
-  .section.visible { display: block; }
-  .page-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; }
-  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
-  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
-  .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 4px; }
-  .stat-card .value { font-size: 22px; font-weight: 600; }
-  .stat-card .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
-  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
-  .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
-  .card-name { font-weight: 600; font-size: 15px; }
-  .card-id { font-size: 11px; color: var(--muted); margin-top: 2px; }
-  .card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; font-size: 13px; }
-  .card-body .field { color: var(--muted); }
-  .card-body .val { font-weight: 500; }
-  .card-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
-  .card-actions button { flex: 1; padding: 7px; border: 1px solid var(--border); background: transparent; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; color: var(--text); transition: background .12s; }
-  .card-actions button:hover { background: var(--bg); }
-  .card-actions button.danger { color: var(--red); border-color: var(--red-bg); }
-  .card-actions button.danger:hover { background: var(--red-bg); }
-  .card-actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
-  .badge { display: inline-block; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
-  .badge-pendiente { background: var(--amber-bg); color: var(--amber); }
-  .badge-proceso { background: var(--accent-light); color: var(--accent); }
-  .badge-entregado { background: var(--green-bg); color: var(--green); }
-  .badge-cancelado { background: var(--red-bg); color: var(--red); }
-  .pago-badge { font-size: 12px; color: var(--muted); background: var(--bg); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); }
-  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
-  @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } .card-body { grid-template-columns: 1fr; } }
-  .form-group { display: flex; flex-direction: column; gap: 5px; }
-  .form-group.full { grid-column: 1 / -1; }
-  .form-group label { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
-  .form-group input, .form-group select, .form-group textarea { padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit; transition: border-color .15s; }
-  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
-  .form-group textarea { resize: vertical; min-height: 70px; }
-  .btn { padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; border: 1px solid transparent; }
-  .btn-primary { background: var(--accent); color: #fff; }
-  .btn-primary:hover { opacity: .9; }
-  .btn-secondary { background: transparent; color: var(--text); border-color: var(--border); }
-  .btn-secondary:hover { background: var(--bg); }
-  .btn-row { display: flex; gap: 10px; margin-top: 6px; }
-  .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
-  .filter-bar input { flex: 1; min-width: 140px; padding: 8px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-size: 13px; }
-  .filter-bar select { padding: 8px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-size: 13px; }
-  .empty { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; }
-  .empty .icon { font-size: 40px; margin-bottom: 10px; }
-  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 500; z-index: 999; opacity: 0; transition: opacity .2s; pointer-events: none; white-space: nowrap; }
-  .toast.show { opacity: 1; }
-  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
-  .modal-backdrop.open { display: flex; }
-  .modal { background: var(--surface); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); }
-  .modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 16px; }
-  .chart-bars { display: flex; gap: 8px; align-items: flex-end; height: 80px; margin: 12px 0; }
-  .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
-  .bar { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; transition: height .4s; min-height: 4px; }
-  .bar-label { font-size: 10px; color: var(--muted); text-align: center; }
-  .bar-val { font-size: 11px; font-weight: 600; }
-  .info-box { background: var(--accent-light); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; font-size: 13px; color: var(--accent); margin-bottom: 14px; line-height: 1.6; }
-  .info-box code { background: rgba(0,0,0,.08); padding: 1px 5px; border-radius: 3px; font-family: monospace; font-size: 12px; }
+/* APP */
+#app-screen{display:none;min-height:100vh;}
+.topbar{background:var(--accent);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;}
+.topbar-title{color:#fff;font-size:15px;font-weight:700;letter-spacing:-.2px;}
+.topbar-right{display:flex;align-items:center;gap:10px;}
+.topbar-status{font-size:12px;color:rgba(255,255,255,.75);}
+.topbar-logout{background:rgba(255,255,255,.15);border:none;color:#fff;padding:5px 12px;border-radius:var(--radius);font-size:13px;cursor:pointer;transition:background .15s;}
+.topbar-logout:hover{background:rgba(255,255,255,.25);}
+
+.navbar{background:var(--surface);border-bottom:2px solid var(--border);display:flex;padding:0 16px;overflow-x:auto;}
+.navbar button{padding:14px 16px;border:none;background:transparent;font-size:14px;font-weight:500;color:var(--muted);cursor:pointer;white-space:nowrap;border-bottom:3px solid transparent;margin-bottom:-2px;transition:color .15s;}
+.navbar button.active{color:var(--accent);border-bottom-color:var(--accent);}
+.navbar button:hover:not(.active){color:var(--text);}
+
+main{padding:20px;max-width:960px;margin:0 auto;}
+.section{display:none;}
+.section.visible{display:block;}
+
+/* LOZENGE / BADGE */
+.loz{display:inline-block;padding:2px 8px;border-radius:3px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;}
+.loz-pendiente{background:#fff0b3;color:#172b4d;}
+.loz-pedido{background:var(--blue2-bg);color:var(--blue2);}
+.loz-enviado{background:var(--purple-bg);color:var(--purple);}
+.loz-entregado{background:var(--green-bg);color:var(--green);}
+.loz-si{background:var(--green-bg);color:var(--green);}
+.loz-no{background:var(--red-bg);color:var(--red);}
+.loz-efectivo{background:var(--gray-bg);color:var(--gray);}
+.loz-bizum{background:var(--accent-bg);color:var(--accent);}
+
+/* TABLA SERVICENOW STYLE */
+.table-wrap{background:var(--surface);border-radius:var(--radius-md);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;}
+.table-header-row{display:grid;grid-template-columns:2fr 1.2fr 0.7fr 1fr 1fr 1fr 1.2fr 80px;padding:10px 14px;background:var(--bg);border-bottom:2px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.table-row{border-bottom:1px solid var(--border);}
+.table-row:last-child{border-bottom:none;}
+.table-main{display:grid;grid-template-columns:2fr 1.2fr 0.7fr 1fr 1fr 1fr 1.2fr 80px;padding:12px 14px;align-items:center;gap:4px;cursor:pointer;transition:background .12s;}
+.table-main:hover{background:#f8f9fa;}
+.pedido-nombre{font-weight:600;color:var(--text);font-size:14px;}
+.pedido-tracking{font-size:11px;color:var(--muted);margin-top:2px;}
+.table-cell{font-size:13px;color:var(--text);}
+
+/* DETALLE EXPANDIBLE */
+.table-detail{display:none;padding:0 14px 14px;border-top:1px solid var(--border);background:#fafbfc;}
+.table-detail.open{display:block;}
+.detail-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}
+.detail-table th{background:var(--bg);padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.3px;border-bottom:2px solid var(--border);}
+.detail-table td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text);}
+.detail-table tr:last-child td{border-bottom:none;}
+.detail-actions{display:flex;gap:8px;margin-top:12px;}
+.btn-detail{padding:6px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:2px solid transparent;transition:all .12s;}
+.btn-edit{background:transparent;border-color:var(--border);color:var(--text);}
+.btn-edit:hover{background:var(--bg);border-color:var(--accent);color:var(--accent);}
+.btn-entregado{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-entregado:hover{background:var(--accent-hover);}
+.btn-del{background:transparent;border-color:var(--border);color:var(--red);}
+.btn-del:hover{background:var(--red-bg);border-color:var(--red);}
+.toggle-btn{background:transparent;border:none;color:var(--accent);font-size:18px;cursor:pointer;padding:0 4px;line-height:1;}
+
+/* FILTROS */
+.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center;}
+.filter-bar input{flex:1;min-width:160px;padding:8px 10px;border:2px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--surface);}
+.filter-bar input:focus{outline:none;border-color:var(--accent);}
+.filter-bar select{padding:8px 10px;border:2px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--surface);}
+.filter-bar select:focus{outline:none;border-color:var(--accent);}
+
+/* FORMULARIO NUEVO */
+.form-card{background:var(--surface);border-radius:var(--radius-md);box-shadow:var(--shadow);padding:20px;margin-bottom:16px;}
+.form-card h3{font-size:14px;font-weight:700;color:var(--text);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border);}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+@media(max-width:600px){.form-grid,.form-grid-3{grid-template-columns:1fr;}.table-header-row,.table-main{grid-template-columns:2fr 1fr 1fr 60px;}.table-header-row span:nth-child(n+3):not(:nth-child(4)):not(:nth-child(7)),.table-main>*:nth-child(n+3):not(:nth-child(4)):not(:nth-child(7)){display:none;}}
+.fg{display:flex;flex-direction:column;gap:4px;}
+.fg.full{grid-column:1/-1;}
+.fg label{font-size:12px;font-weight:600;color:var(--text);}
+.fg input,.fg select,.fg textarea{padding:8px 10px;border:2px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--surface);font-family:inherit;transition:border-color .15s;}
+.fg input:focus,.fg select:focus,.fg textarea:focus{outline:none;border-color:var(--accent);}
+.fg textarea{resize:vertical;min-height:60px;}
+
+.item-block{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-md);padding:14px;margin-bottom:10px;position:relative;}
+.item-block-title{font-size:12px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;}
+.remove-item-btn{position:absolute;top:10px;right:10px;background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;line-height:1;padding:2px;}
+.remove-item-btn:hover{color:var(--red);}
+.add-item-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;border:2px dashed var(--border);border-radius:var(--radius);background:transparent;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;transition:all .15s;margin-top:4px;}
+.add-item-btn:hover{border-color:var(--accent);background:var(--accent-bg);}
+
+.btn-row{display:flex;gap:10px;margin-top:4px;}
+.btn{padding:9px 18px;border-radius:var(--radius);font-size:14px;font-weight:600;cursor:pointer;border:2px solid transparent;transition:all .15s;}
+.btn-primary{background:var(--accent);color:#fff;border-color:var(--accent);}
+.btn-primary:hover{background:var(--accent-hover);}
+.btn-secondary{background:transparent;color:var(--text);border-color:var(--border);}
+.btn-secondary:hover{background:var(--bg);}
+
+/* RESUMEN */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px;}
+.stat-card{background:var(--surface);border-radius:var(--radius-md);box-shadow:var(--shadow);padding:16px 18px;}
+.stat-card .slabel{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);margin-bottom:6px;}
+.stat-card .svalue{font-size:24px;font-weight:700;color:var(--text);}
+.stat-card .ssub{font-size:12px;color:var(--muted);margin-top:3px;}
+.chart-bars{display:flex;gap:8px;align-items:flex-end;height:80px;margin:10px 0;}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.bar{width:100%;background:var(--accent);border-radius:2px 2px 0 0;min-height:4px;transition:height .4s;}
+.bar-label{font-size:10px;color:var(--muted);}
+.bar-val{font-size:11px;font-weight:700;color:var(--text);}
+
+/* MODAL */
+.modal-backdrop{display:none;position:fixed;inset:0;background:rgba(9,30,66,.5);z-index:300;align-items:center;justify-content:center;padding:16px;}
+.modal-backdrop.open{display:flex;}
+.modal{background:var(--surface);border-radius:var(--radius-md);padding:24px;width:100%;max-width:600px;max-height:90vh;overflow-y:auto;box-shadow:var(--shadow-md);}
+.modal h2{font-size:18px;font-weight:700;margin-bottom:18px;color:var(--text);}
+
+/* MISC */
+.empty{text-align:center;padding:48px 20px;color:var(--muted);}
+.empty .icon{font-size:40px;margin-bottom:10px;}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--text);color:#fff;padding:10px 20px;border-radius:var(--radius-md);font-size:13px;font-weight:600;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none;white-space:nowrap;box-shadow:var(--shadow-md);}
+.toast.show{opacity:1;}
+.precio-total-display{font-size:18px;font-weight:700;color:var(--accent);padding:10px 0;}
 </style>
 </head>
 <body>
@@ -111,142 +157,161 @@
 <!-- LOGIN -->
 <div id="login-screen">
   <div class="login-box">
-    <h2>⚽ Pedidos de camisetas</h2>
-    <p>Acceso privado</p>
-    <div class="login-field">
-      <label>Usuario</label>
-      <input type="text" id="login-user" placeholder="Tu usuario" maxlength="50" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
-    <div class="login-field">
-      <label>Contraseña</label>
-      <input type="password" id="login-pw" placeholder="••••••••" maxlength="100" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()">
-    </div>
+    <div class="login-logo">⚽ Vibe coded by pperezmo</div>
+    <div class="login-sub">Acceso privado</div>
+    <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
+    <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
-    <div class="login-error" id="login-error"></div>
+    <div class="login-err" id="login-err"></div>
   </div>
 </div>
 
 <!-- APP -->
 <div id="app-screen">
-  <header>
-    <h1>⚽ Pedidos de camisetas</h1>
-    <div class="header-right">
-      <span id="connection-status" style="font-size:12px;color:var(--muted);">—</span>
-      <button class="logout-btn" onclick="doLogout()">Salir</button>
+  <div class="topbar">
+    <div class="topbar-title">⚽ Vibe coded by pperezmo</div>
+    <div class="topbar-right">
+      <span class="topbar-status" id="conn-status">—</span>
+      <button class="topbar-logout" onclick="doLogout()">Salir</button>
     </div>
-  </header>
-  <nav>
-    <button class="active" onclick="showSection('resumen',this)">Resumen</button>
-    <button onclick="showSection('pedidos',this)">Pedidos</button>
+  </div>
+  <div class="navbar">
+    <button class="active" onclick="showSection('pedidos',this)">Pedidos</button>
     <button onclick="showSection('nuevo',this)">+ Nuevo</button>
+    <button onclick="showSection('resumen',this)">Resumen</button>
     <button onclick="showSection('ajustes',this)">Ajustes</button>
-  </nav>
+  </div>
   <main>
 
-    <section id="s-resumen" class="section visible">
-      <p class="page-title">Resumen</p>
-      <div class="stats-grid">
-        <div class="stat-card"><div class="label">Total pedidos</div><div class="value" id="st-total">—</div></div>
-        <div class="stat-card"><div class="label">Pendientes</div><div class="value" id="st-pendientes">—</div></div>
-        <div class="stat-card"><div class="label">En proceso</div><div class="value" id="st-proceso">—</div></div>
-        <div class="stat-card"><div class="label">Entregados</div><div class="value" id="st-entregados">—</div></div>
-        <div class="stat-card"><div class="label">Total facturado</div><div class="value" id="st-euro">—</div><div class="sub">pedidos entregados</div></div>
-        <div class="stat-card"><div class="label">Total cobrado</div><div class="value" id="st-cobrado">—</div><div class="sub">efectivo + bizum</div></div>
-      </div>
-      <div class="card">
-        <div style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Pedidos por versión</div>
-        <div class="chart-bars" id="chart-versiones"></div>
-      </div>
-      <div class="card">
-        <div style="font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Método de pago</div>
-        <div id="pago-breakdown" style="display:flex;gap:12px;flex-wrap:wrap;"></div>
-      </div>
-    </section>
-
-    <section id="s-pedidos" class="section">
-      <p class="page-title">Todos los pedidos</p>
+    <!-- PEDIDOS -->
+    <section id="s-pedidos" class="section visible">
       <div class="filter-bar">
         <input type="text" id="search" placeholder="Buscar por nombre..." oninput="renderPedidos()">
-        <select id="filter-estado" onchange="renderPedidos()">
+        <select id="f-estado" onchange="renderPedidos()">
           <option value="">Todos los estados</option>
-          <option>Pendiente</option><option>En proceso</option><option>Entregado</option><option>Cancelado</option>
+          <option>Pendiente de pedido</option><option>Pedido</option>
+          <option>Enviado</option><option>Entregado</option>
         </select>
-        <select id="filter-pago" onchange="renderPedidos()">
+        <select id="f-pago" onchange="renderPedidos()">
           <option value="">Todos los pagos</option>
           <option>Efectivo</option><option>Bizum</option>
         </select>
       </div>
-      <div id="pedidos-list"></div>
-    </section>
-
-    <section id="s-nuevo" class="section">
-      <p class="page-title">Nuevo pedido</p>
-      <div class="card">
-        <div class="form-grid">
-          <div class="form-group"><label>Nombre del cliente</label><input type="text" id="f-nombre" placeholder="Ej. Juan García" maxlength="100"></div>
-          <div class="form-group"><label>Fecha del pedido</label><input type="date" id="f-fecha"></div>
-          <div class="form-group"><label>Versión de la camiseta</label>
-            <select id="f-version"><option value="">Selecciona...</option><option>Fan</option><option>Retro</option><option>Player</option><option>Kids</option><option>Woman</option></select>
-          </div>
-          <div class="form-group"><label>Talla / diseño</label><input type="text" id="f-talla" placeholder="Ej. XL" maxlength="50"></div>
-          <div class="form-group full"><label>Personalización (nombre, número, parche)</label><input type="text" id="f-personalizacion" placeholder="Ej. Messi 10, parche Liga" maxlength="150"></div>
-          <div class="form-group"><label>Precio (€)</label><input type="number" id="f-precio" placeholder="0.00" step="0.01" min="0" max="9999"></div>
-          <div class="form-group"><label>Método de pago</label>
-            <select id="f-pago"><option value="">Selecciona...</option><option>Efectivo</option><option>Bizum</option><option>Pendiente de pago</option></select>
-          </div>
-          <div class="form-group"><label>Estado inicial</label>
-            <select id="f-estado"><option>Pendiente</option><option>En proceso</option><option>Entregado</option></select>
-          </div>
-          <div class="form-group full"><label>Notas (opcional)</label><textarea id="f-notas" placeholder="Observaciones..." maxlength="300"></textarea></div>
+      <div class="table-wrap">
+        <div class="table-header-row">
+          <span>Pedido</span>
+          <span>Estado</span>
+          <span>Items</span>
+          <span>Precio</span>
+          <span>Pagado</span>
+          <span>Pago</span>
+          <span>Fecha</span>
+          <span></span>
         </div>
-        <div class="btn-row">
-          <button class="btn btn-primary" onclick="guardarPedido()">Guardar pedido</button>
-          <button class="btn btn-secondary" onclick="limpiarForm()">Limpiar</button>
-        </div>
+        <div id="pedidos-list"></div>
       </div>
     </section>
 
+    <!-- NUEVO -->
+    <section id="s-nuevo" class="section">
+      <div class="form-card">
+        <h3>Datos del pedido</h3>
+        <div class="form-grid">
+          <div class="fg"><label>Nombre del cliente *</label><input type="text" id="f-nombre" maxlength="100" placeholder="Ej. Juan García"></div>
+          <div class="fg"><label>Fecha del pedido</label><input type="date" id="f-fecha"></div>
+          <div class="fg"><label>Método de pago</label>
+            <select id="f-pago-met"><option value="">Selecciona...</option><option>Efectivo</option><option>Bizum</option></select>
+          </div>
+          <div class="fg"><label>Estado</label>
+            <select id="f-estado-new">
+              <option>Pendiente de pedido</option><option>Pedido</option><option>Enviado</option><option>Entregado</option>
+            </select>
+          </div>
+          <div class="fg"><label>Pagado</label>
+            <select id="f-pagado"><option>No</option><option>Sí</option></select>
+          </div>
+          <div class="fg"><label>Precio total</label>
+            <div class="precio-total-display" id="precio-total-display">0.00 €</div>
+          </div>
+          <div class="fg full"><label>Notas (opcional)</label><textarea id="f-notas" maxlength="300"></textarea></div>
+        </div>
+      </div>
+
+      <div class="form-card">
+        <h3>Productos</h3>
+        <div id="items-container"></div>
+        <button class="add-item-btn" onclick="addItemBlock()">＋ Añadir producto</button>
+      </div>
+
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="guardarPedido()">Guardar pedido</button>
+        <button class="btn btn-secondary" onclick="limpiarNuevo()">Limpiar</button>
+      </div>
+    </section>
+
+    <!-- RESUMEN -->
+    <section id="s-resumen" class="section">
+      <div class="stats-grid">
+        <div class="stat-card"><div class="slabel">Total pedidos</div><div class="svalue" id="st-total">—</div></div>
+        <div class="stat-card"><div class="slabel">Pend. de pedido</div><div class="svalue" id="st-pend">—</div></div>
+        <div class="stat-card"><div class="slabel">Pedido</div><div class="svalue" id="st-pedido">—</div></div>
+        <div class="stat-card"><div class="slabel">Enviado</div><div class="svalue" id="st-enviado">—</div></div>
+        <div class="stat-card"><div class="slabel">Entregado</div><div class="svalue" id="st-entregado">—</div></div>
+        <div class="stat-card"><div class="slabel">Total facturado</div><div class="svalue" id="st-facturado">—</div><div class="ssub">pagados</div></div>
+        <div class="stat-card"><div class="slabel">Falta facturar</div><div class="svalue" id="st-falta">—</div><div class="ssub">no pagados</div></div>
+        <div class="stat-card"><div class="slabel">Ganancias</div><div class="svalue" id="st-ganancia">—</div><div class="ssub">facturado − coste</div></div>
+      </div>
+      <div class="form-card">
+        <h3>Pedidos por versión</h3>
+        <div class="chart-bars" id="chart-versiones"></div>
+      </div>
+    </section>
+
+    <!-- AJUSTES -->
     <section id="s-ajustes" class="section">
-      <p class="page-title">Ajustes</p>
-      <div class="card">
-        <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Estado de la conexión</div>
+      <div class="form-card">
+        <h3>Estado de la conexión</h3>
         <div id="config-status" style="font-size:13px;color:var(--muted);margin-bottom:12px;">—</div>
         <button class="btn btn-secondary" onclick="cargarDatos()">↺ Recargar datos</button>
       </div>
-      <div class="card">
-        <div style="font-size:15px;font-weight:600;margin-bottom:8px;">Cómo añadir usuarios</div>
-        <div class="info-box">
-          Para añadir o cambiar usuarios, ve a tu Google Sheet, abre la hoja <code>Usuarios</code> y añade una fila con el nombre de usuario y el hash SHA-256 de la contraseña.<br><br>
-          Puedes generar el hash en: <a href="https://emn178.github.io/online-tools/sha256.html" target="_blank" style="color:var(--accent);">emn178.github.io/online-tools/sha256.html</a>
-        </div>
-        <div style="font-size:13px;color:var(--muted);">La sesión dura 8 horas y se invalida al pulsar "Salir".</div>
+      <div class="form-card">
+        <h3>Cómo añadir usuarios</h3>
+        <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+          Ve a tu Google Sheet → hoja <strong>Usuarios</strong> → añade usuario y el hash SHA-256 de la contraseña.<br>
+          Genera el hash en: <a href="https://emn178.github.io/online-tools/sha256.html" target="_blank" style="color:var(--accent);">emn178.github.io/online-tools/sha256.html</a>
+        </p>
       </div>
     </section>
 
   </main>
 </div>
 
-<!-- Modal editar -->
+<!-- MODAL EDITAR -->
 <div class="modal-backdrop" id="modal-editar">
   <div class="modal">
     <h2>Editar pedido</h2>
-    <div class="form-grid">
-      <input type="hidden" id="e-id">
-      <div class="form-group"><label>Nombre del cliente</label><input type="text" id="e-nombre" maxlength="100"></div>
-      <div class="form-group"><label>Fecha</label><input type="date" id="e-fecha"></div>
-      <div class="form-group"><label>Versión</label>
-        <select id="e-version"><option>Fan</option><option>Retro</option><option>Player</option><option>Kids</option><option>Woman</option></select>
+    <input type="hidden" id="e-id">
+    <div class="form-grid" style="margin-bottom:14px;">
+      <div class="fg"><label>Nombre del cliente</label><input type="text" id="e-nombre" maxlength="100"></div>
+      <div class="fg"><label>Fecha</label><input type="date" id="e-fecha"></div>
+      <div class="fg"><label>Método de pago</label>
+        <select id="e-pago"><option>Efectivo</option><option>Bizum</option></select>
       </div>
-      <div class="form-group"><label>Talla / diseño</label><input type="text" id="e-talla" maxlength="50"></div>
-      <div class="form-group full"><label>Personalización</label><input type="text" id="e-personalizacion" maxlength="150"></div>
-      <div class="form-group"><label>Precio (€)</label><input type="number" id="e-precio" step="0.01" min="0" max="9999"></div>
-      <div class="form-group"><label>Método de pago</label>
-        <select id="e-pago"><option>Efectivo</option><option>Bizum</option><option>Pendiente de pago</option></select>
+      <div class="fg"><label>Estado</label>
+        <select id="e-estado"><option>Pendiente de pedido</option><option>Pedido</option><option>Enviado</option><option>Entregado</option></select>
       </div>
-      <div class="form-group"><label>Estado</label>
-        <select id="e-estado"><option>Pendiente</option><option>En proceso</option><option>Entregado</option><option>Cancelado</option></select>
+      <div class="fg"><label>Pagado</label>
+        <select id="e-pagado"><option>No</option><option>Sí</option></select>
       </div>
-      <div class="form-group full"><label>Notas</label><textarea id="e-notas" maxlength="300"></textarea></div>
+      <div class="fg"><label>Precio total</label>
+        <div class="precio-total-display" id="e-precio-display">0.00 €</div>
+      </div>
+      <div class="fg full"><label>Notas</label><textarea id="e-notas" maxlength="300"></textarea></div>
+    </div>
+    <div class="form-card" style="margin-bottom:14px;padding:14px;">
+      <h3 style="margin-bottom:10px;">Productos</h3>
+      <div id="e-items-container"></div>
+      <button class="add-item-btn" onclick="addItemBlock('e-items-container','e-precio-display')">＋ Añadir producto</button>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" onclick="actualizarPedido()">Guardar cambios</button>
@@ -264,57 +329,25 @@ const TOKEN_EXPIRY_KEY = "ped_token_expiry";
 
 let pedidos = [];
 let sessionToken = null;
+let itemCounter = 0;
+
+// ── AUTH ────────────────────────────────────────────────────
 
 async function sha256(str) {
   const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
-  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,"0")).join("");
-}
-
-function sanitize(str) {
-  return String(str ?? "")
-    .replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/"/g,"&quot;").replace(/'/g,"&#x27;");
-}
-
-function validateField(value, maxLen) {
-  return String(value ?? "").trim().slice(0, maxLen);
-}
-
-async function apiCall(params) {
-  const url = SCRIPT_URL + "?" + new URLSearchParams(params).toString();
-  try {
-    const res = await fetch(url);
-    const data = await res.json();
-    if (data.auth === false) {
-      showToast("Sesión expirada, vuelve a entrar");
-      doLogoutLocal();
-      return null;
-    }
-    return data;
-  } catch (e) {
-    showToast("Error de conexión");
-    return null;
-  }
+  return Array.from(new Uint8Array(buf)).map(b=>b.toString(16).padStart(2,"0")).join("");
 }
 
 async function doLogin() {
   const user = document.getElementById("login-user").value.trim();
   const pw = document.getElementById("login-pw").value;
-  const err = document.getElementById("login-error");
+  const err = document.getElementById("login-err");
   const btn = document.getElementById("login-btn");
-
   if (!user || !pw) { err.textContent = "Introduce usuario y contraseña"; return; }
-
-  btn.disabled = true;
-  btn.textContent = "Comprobando...";
-  err.textContent = "";
-
+  btn.disabled = true; btn.textContent = "Comprobando..."; err.textContent = "";
   const hash = await sha256(pw);
-  const res = await apiCall({ action: "login", user, hash });
-
-  btn.disabled = false;
-  btn.textContent = "Entrar";
-
+  const res = await apiCall({ action:"login", user, hash });
+  btn.disabled = false; btn.textContent = "Entrar";
   if (res && res.ok) {
     sessionToken = res.token;
     sessionStorage.setItem(TOKEN_KEY, res.token);
@@ -330,27 +363,18 @@ async function doLogin() {
 }
 
 async function doLogout() {
-  if (sessionToken) {
-    await apiCall({ action: "logout", token: sessionToken });
-  }
-  doLogoutLocal();
-}
-
-function doLogoutLocal() {
-  sessionToken = null;
-  pedidos = [];
-  sessionStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(TOKEN_EXPIRY_KEY);
+  if (sessionToken) await apiCall({ action:"logout", token:sessionToken });
+  sessionToken = null; pedidos = [];
+  sessionStorage.removeItem(TOKEN_KEY); sessionStorage.removeItem(TOKEN_EXPIRY_KEY);
   document.getElementById("app-screen").style.display = "none";
   document.getElementById("login-screen").style.display = "flex";
   document.getElementById("login-user").value = "";
   document.getElementById("login-pw").value = "";
-  document.getElementById("login-error").textContent = "";
 }
 
 function checkSession() {
   const token = sessionStorage.getItem(TOKEN_KEY);
-  const expiry = parseInt(sessionStorage.getItem(TOKEN_EXPIRY_KEY) || "0");
+  const expiry = parseInt(sessionStorage.getItem(TOKEN_EXPIRY_KEY)||"0");
   if (token && Date.now() < expiry) {
     sessionToken = token;
     document.getElementById("login-screen").style.display = "none";
@@ -359,199 +383,366 @@ function checkSession() {
   }
 }
 
-function showSection(id, btn) {
-  document.querySelectorAll(".section").forEach(s => s.classList.remove("visible"));
-  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
-  document.getElementById("s-" + id).classList.add("visible");
-  if (btn) btn.classList.add("active");
-  if (id === "resumen") renderResumen();
-  if (id === "pedidos") renderPedidos();
+// ── API ─────────────────────────────────────────────────────
+
+async function apiCall(params) {
+  const url = SCRIPT_URL + "?" + new URLSearchParams(params).toString();
+  try {
+    const res = await fetch(url);
+    const data = await res.json();
+    if (data.auth === false) { showToast("Sesión expirada"); doLogout(); return null; }
+    return data;
+  } catch(e) { showToast("Error de conexión"); return null; }
 }
 
 async function cargarDatos() {
-  document.getElementById("connection-status").textContent = "⏳ Cargando...";
-  const data = await apiCall({ action: "getPedidos", token: sessionToken });
+  document.getElementById("conn-status").textContent = "⏳ Cargando...";
+  const data = await apiCall({ action:"getPedidos", token:sessionToken });
   if (data && data.pedidos) {
     pedidos = data.pedidos;
-    document.getElementById("connection-status").textContent = "✅ " + pedidos.length + " pedidos";
-    document.getElementById("config-status").textContent = "✅ Conexión correcta · " + pedidos.length + " pedidos cargados";
-    renderResumen();
+    document.getElementById("conn-status").textContent = "✅ " + pedidos.length + " pedidos";
+    document.getElementById("config-status").textContent = "✅ Conexión correcta · " + pedidos.length + " pedidos";
     renderPedidos();
+    renderResumen();
   } else if (data) {
-    document.getElementById("connection-status").textContent = "❌ Error";
-    document.getElementById("config-status").textContent = "❌ No se pudo conectar con Google Sheets";
+    document.getElementById("conn-status").textContent = "❌ Error";
   }
 }
 
-function renderResumen() {
-  const total = pedidos.length;
-  const pendientes = pedidos.filter(p => p["Estado"] === "Pendiente").length;
-  const proceso = pedidos.filter(p => p["Estado"] === "En proceso").length;
-  const entregados = pedidos.filter(p => p["Estado"] === "Entregado").length;
-  const facturado = pedidos.filter(p => p["Estado"] === "Entregado").reduce((s,p) => s + (parseFloat(p["Precio (€)"]) || 0), 0);
-  const cobrado = pedidos.filter(p => p["Método de pago"] !== "Pendiente de pago").reduce((s,p) => s + (parseFloat(p["Precio (€)"]) || 0), 0);
-  document.getElementById("st-total").textContent = total;
-  document.getElementById("st-pendientes").textContent = pendientes;
-  document.getElementById("st-proceso").textContent = proceso;
-  document.getElementById("st-entregados").textContent = entregados;
-  document.getElementById("st-euro").textContent = facturado.toFixed(2) + " €";
-  document.getElementById("st-cobrado").textContent = cobrado.toFixed(2) + " €";
-  const versiones = ["Fan","Retro","Player","Kids","Woman"];
-  const counts = versiones.map(v => pedidos.filter(p => p["Versión camiseta"] === v).length);
-  const maxC = Math.max(...counts, 1);
-  document.getElementById("chart-versiones").innerHTML = versiones.map((v,i) => `
-    <div class="bar-wrap">
-      <div class="bar-val">${counts[i]}</div>
-      <div class="bar" style="height:${Math.round((counts[i]/maxC)*60)+4}px"></div>
-      <div class="bar-label">${v}</div>
-    </div>`).join("");
-  const efectivo = pedidos.filter(p => p["Método de pago"] === "Efectivo").length;
-  const bizum = pedidos.filter(p => p["Método de pago"] === "Bizum").length;
-  const pendPago = pedidos.filter(p => p["Método de pago"] === "Pendiente de pago").length;
-  document.getElementById("pago-breakdown").innerHTML = [
-    {label:"Efectivo",val:efectivo,cls:"badge-entregado"},
-    {label:"Bizum",val:bizum,cls:"badge-proceso"},
-    {label:"Pendiente",val:pendPago,cls:"badge-pendiente"}
-  ].map(x => `<div style="display:flex;align-items:center;gap:6px;font-size:13px;"><span class="badge ${x.cls}">${x.val}</span>${x.label}</div>`).join("");
+// ── NAV ─────────────────────────────────────────────────────
+
+function showSection(id, btn) {
+  document.querySelectorAll(".section").forEach(s=>s.classList.remove("visible"));
+  document.querySelectorAll(".navbar button").forEach(b=>b.classList.remove("active"));
+  document.getElementById("s-"+id).classList.add("visible");
+  if (btn) btn.classList.add("active");
 }
 
+// ── UTILS ────────────────────────────────────────────────────
+
+function sanitize(str) {
+  return String(str??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#x27;");
+}
+function val(id, max=200) { return String(document.getElementById(id)?.value??"").trim().slice(0,max); }
+function formatFecha(f) {
+  if (!f) return "—";
+  // If it's already dd/mm/yyyy
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(String(f))) return f;
+  // If yyyy-mm-dd
+  if (/^\d{4}-\d{2}-\d{2}$/.test(String(f))) {
+    const [y,m,d] = String(f).split("-");
+    return d+"/"+m+"/"+y;
+  }
+  return String(f);
+}
+function estadoLoz(e) {
+  const map = {"Pendiente de pedido":"loz-pendiente","Pedido":"loz-pedido","Enviado":"loz-enviado","Entregado":"loz-entregado"};
+  return `<span class="loz ${map[e]||''}">${sanitize(e)}</span>`;
+}
+
+// ── ITEMS FORM ───────────────────────────────────────────────
+
+function addItemBlock(containerId='items-container', priceDisplayId='precio-total-display') {
+  const id = ++itemCounter;
+  const div = document.createElement("div");
+  div.className = "item-block";
+  div.dataset.itemid = id;
+  div.innerHTML = `
+    <div class="item-block-title">Producto #${id}</div>
+    <button class="remove-item-btn" onclick="removeItem(this,'${containerId}','${priceDisplayId}')" title="Eliminar">×</button>
+    <div class="form-grid-3">
+      <div class="fg full" style="grid-column:1/-1"><label>Item (nombre de la camiseta)</label><input type="text" class="i-item" placeholder="Ej. Granada CF Local 24/25" maxlength="100"></div>
+      <div class="fg"><label>Versión</label>
+        <select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option></select>
+      </div>
+      <div class="fg"><label>Talla</label><input type="text" class="i-talla" placeholder="Ej. XL" maxlength="20"></div>
+      <div class="fg"><label>Nombre y número</label><input type="text" class="i-nombren" placeholder="Ej. Messi 10" maxlength="80"></div>
+      <div class="fg"><label>Parche</label><input type="text" class="i-parche" placeholder="Ej. Liga" maxlength="80"></div>
+      <div class="fg"><label>Precio venta (€)</label><input type="number" class="i-precio" placeholder="0.00" step="0.01" min="0" max="9999" oninput="recalcTotal('${priceDisplayId}')"></div>
+      <div class="fg"><label>Lo que pago (€)</label><input type="number" class="i-loquepago" placeholder="0.00" step="0.01" min="0" max="9999"></div>
+    </div>`;
+  document.getElementById(containerId).appendChild(div);
+  recalcTotal(priceDisplayId);
+}
+
+function removeItem(btn, containerId, priceDisplayId) {
+  btn.closest(".item-block").remove();
+  recalcTotal(priceDisplayId);
+}
+
+function recalcTotal(displayId) {
+  const container = document.getElementById(displayId === 'precio-total-display' ? 'items-container' : 'e-items-container');
+  let total = 0;
+  container.querySelectorAll(".i-precio").forEach(inp => { total += parseFloat(inp.value)||0; });
+  document.getElementById(displayId).textContent = total.toFixed(2) + " €";
+}
+
+function getItemsFromContainer(containerId) {
+  const items = [];
+  document.getElementById(containerId).querySelectorAll(".item-block").forEach(block => {
+    items.push({
+      item: block.querySelector(".i-item").value.trim().slice(0,100),
+      version: block.querySelector(".i-version").value,
+      talla: block.querySelector(".i-talla").value.trim().slice(0,20),
+      nombreNumero: block.querySelector(".i-nombren").value.trim().slice(0,80),
+      parche: block.querySelector(".i-parche").value.trim().slice(0,80),
+      precioVenta: parseFloat(block.querySelector(".i-precio").value)||0,
+      loquepago: parseFloat(block.querySelector(".i-loquepago").value)||0
+    });
+  });
+  return items;
+}
+
+// ── PEDIDOS LIST ─────────────────────────────────────────────
+
 function renderPedidos() {
-  const search = (document.getElementById("search")?.value || "").toLowerCase();
-  const est = document.getElementById("filter-estado")?.value || "";
-  const pago = document.getElementById("filter-pago")?.value || "";
+  const search = (document.getElementById("search")?.value||"").toLowerCase();
+  const est = document.getElementById("f-estado")?.value||"";
+  const pago = document.getElementById("f-pago")?.value||"";
+
   let filtered = pedidos.filter(p => {
-    const nombre = (p["Nombre cliente"] || "").toLowerCase();
-    if (search && !nombre.includes(search)) return false;
+    if (search && !(p["Nombre cliente"]||"").toLowerCase().includes(search)) return false;
     if (est && p["Estado"] !== est) return false;
     if (pago && p["Método de pago"] !== pago) return false;
     return true;
   });
+
   const container = document.getElementById("pedidos-list");
   if (!filtered.length) {
     container.innerHTML = `<div class="empty"><div class="icon">📦</div>No hay pedidos que mostrar</div>`;
     return;
   }
-  const estadoBadge = {"Pendiente":"badge-pendiente","En proceso":"badge-proceso","Entregado":"badge-entregado","Cancelado":"badge-cancelado"};
+
   container.innerHTML = filtered.slice().reverse().map(p => {
     const id = sanitize(p["ID"]);
-    const nombre = sanitize(p["Nombre cliente"] || "Sin nombre");
-    const fecha = sanitize(p["Fecha"]);
-    const version = sanitize(p["Versión camiseta"] || "—");
-    const talla = sanitize(p["Talla / diseño"] || "—");
-    const pers = sanitize(p["Camiseta (nombre/número/parche)"] || "—");
-    const precio = (parseFloat(p["Precio (€)"]) || 0).toFixed(2);
-    const pago2 = sanitize(p["Método de pago"] || "—");
-    const estado = sanitize(p["Estado"]);
-    const notas = p["Notas"] ? sanitize(p["Notas"]) : "";
-    return `<div class="card">
-      <div class="card-header">
-        <div><div class="card-name">${nombre}</div><div class="card-id">${id} · ${fecha}</div></div>
-        <span class="badge ${estadoBadge[p["Estado"]] || ""}">${estado}</span>
+    const nombre = sanitize(p["Nombre cliente"]||"Sin nombre");
+    const estado = p["Estado"]||"";
+    const items = p.items||[];
+    const numItems = items.length;
+    const precio = (parseFloat(p["Precio total"])||0).toFixed(2);
+    const pagado = p["Pagado"]||"No";
+    const metodoPago = sanitize(p["Método de pago"]||"—");
+    const fecha = formatFecha(p["Fecha"]);
+    const pagadoLoz = pagado==="Sí" ? `<span class="loz loz-si">Sí</span>` : `<span class="loz loz-no">No</span>`;
+    const pagoLoz = p["Método de pago"]==="Bizum" ? `<span class="loz loz-bizum">Bizum</span>` : p["Método de pago"]==="Efectivo" ? `<span class="loz loz-efectivo">Efectivo</span>` : `<span style="color:var(--muted)">—</span>`;
+
+    // Detail table rows (no "lo que pago")
+    const itemRows = items.map(it => `
+      <tr>
+        <td>${sanitize(p["Nombre cliente"]||"")}</td>
+        <td>${sanitize(it["Item"]||"—")}</td>
+        <td>${sanitize(it["Versión"]||"—")}</td>
+        <td>${sanitize(it["Talla"]||"—")}</td>
+        <td>${sanitize(it["Nombre y Número"]||"—")}</td>
+        <td>${sanitize(it["Parche"]||"—")}</td>
+        <td><strong>${(parseFloat(it["Precio venta"])||0).toFixed(2)} €</strong></td>
+      </tr>`).join("") || `<tr><td colspan="7" style="color:var(--muted);text-align:center;">Sin productos</td></tr>`;
+
+    return `<div class="table-row" id="row-${id}">
+      <div class="table-main" onclick="toggleDetail('${id}')">
+        <div>
+          <div class="pedido-nombre">${nombre}</div>
+          <div class="pedido-tracking">${id}</div>
+        </div>
+        <div class="table-cell">${estadoLoz(estado)}</div>
+        <div class="table-cell">${numItems} item${numItems!==1?"s":""}</div>
+        <div class="table-cell"><strong>${precio} €</strong></div>
+        <div class="table-cell">${pagadoLoz}</div>
+        <div class="table-cell">${pagoLoz}</div>
+        <div class="table-cell">${fecha}</div>
+        <div class="table-cell" style="text-align:center;">
+          <button class="toggle-btn" onclick="toggleDetail('${id}');event.stopPropagation()">＋</button>
+        </div>
       </div>
-      <div class="card-body">
-        <span class="field">Versión</span><span class="val">${version}</span>
-        <span class="field">Talla</span><span class="val">${talla}</span>
-        <span class="field">Personalización</span><span class="val">${pers}</span>
-        <span class="field">Precio</span><span class="val">${precio} €</span>
-        <span class="field">Pago</span><span class="val"><span class="pago-badge">${pago2}</span></span>
-        ${notas ? `<span class="field">Notas</span><span class="val">${notas}</span>` : ""}
-      </div>
-      <div class="card-actions">
-        <button onclick="abrirEditarById('${id}')">✏️ Editar</button>
-        <button class="primary" onclick="marcarEntregado('${id}')">✓ Entregado</button>
-        <button class="danger" onclick="eliminarPedido('${id}')">🗑 Borrar</button>
+      <div class="table-detail" id="detail-${id}">
+        <table class="detail-table">
+          <thead><tr><th>Cliente</th><th>Item</th><th>Versión</th><th>Talla</th><th>Nombre y Nº</th><th>Parche</th><th>Precio</th></tr></thead>
+          <tbody>${itemRows}</tbody>
+        </table>
+        <div class="detail-actions">
+          <button class="btn-detail btn-edit" onclick="abrirEditar('${id}')">✏️ Editar</button>
+          <button class="btn-detail btn-entregado" onclick="marcarEntregado('${id}')">✓ Entregado</button>
+          <button class="btn-detail btn-del" onclick="eliminarPedido('${id}')">🗑 Borrar</button>
+        </div>
       </div>
     </div>`;
   }).join("");
 }
 
-const today = new Date().toISOString().split("T")[0];
-document.getElementById("f-fecha").value = today;
+function toggleDetail(id) {
+  const detail = document.getElementById("detail-"+id);
+  const btn = document.querySelector(`#row-${id} .toggle-btn`);
+  if (!detail) return;
+  const isOpen = detail.classList.toggle("open");
+  if (btn) btn.textContent = isOpen ? "−" : "＋";
+}
+
+// ── GUARDAR ──────────────────────────────────────────────────
 
 async function guardarPedido() {
-  const nombre = validateField(document.getElementById("f-nombre").value, 100);
+  const nombre = val("f-nombre",100);
   if (!nombre) { showToast("El nombre es obligatorio"); return; }
-  const precio = Math.min(Math.max(parseFloat(document.getElementById("f-precio").value) || 0, 0), 9999);
+  const items = getItemsFromContainer("items-container");
+  const precioTotal = items.reduce((s,i) => s + i.precioVenta, 0);
   const data = {
     nombre,
-    fecha: validateField(document.getElementById("f-fecha").value, 20),
-    version: validateField(document.getElementById("f-version").value, 20),
-    talla: validateField(document.getElementById("f-talla").value, 50),
-    personalizacion: validateField(document.getElementById("f-personalizacion").value, 150),
-    precio: precio.toFixed(2),
-    pago: validateField(document.getElementById("f-pago").value, 30),
-    estado: validateField(document.getElementById("f-estado").value, 20),
-    notas: validateField(document.getElementById("f-notas").value, 300)
+    fecha: val("f-fecha",20),
+    pago: val("f-pago-met",30),
+    estado: val("f-estado-new",30),
+    pagado: val("f-pagado",5),
+    precioTotal: precioTotal.toFixed(2),
+    notas: val("f-notas",300),
+    items
   };
-  const res = await apiCall({ action: "addPedido", token: sessionToken, data: JSON.stringify(data) });
-  if (res && res.ok) { showToast("Pedido guardado ✓"); limpiarForm(); await cargarDatos(); }
+  const res = await apiCall({ action:"addPedido", token:sessionToken, data:JSON.stringify(data) });
+  if (res && res.ok) { showToast("Pedido guardado ✓"); limpiarNuevo(); await cargarDatos(); showSection('pedidos', document.querySelector('.navbar button')); }
 }
 
-function limpiarForm() {
-  ["f-nombre","f-talla","f-personalizacion","f-precio","f-notas"].forEach(id => document.getElementById(id).value = "");
-  ["f-version","f-pago"].forEach(id => document.getElementById(id).selectedIndex = 0);
-  document.getElementById("f-estado").value = "Pendiente";
-  document.getElementById("f-fecha").value = today;
+function limpiarNuevo() {
+  ["f-nombre","f-notas"].forEach(id=>document.getElementById(id).value="");
+  ["f-pago-met","f-estado-new","f-pagado"].forEach(id=>document.getElementById(id).selectedIndex=0);
+  document.getElementById("f-fecha").value = new Date().toISOString().split("T")[0];
+  document.getElementById("items-container").innerHTML="";
+  document.getElementById("precio-total-display").textContent="0.00 €";
+  itemCounter=0;
 }
 
-function abrirEditarById(id) {
-  const p = pedidos.find(x => x["ID"] === id);
+// ── EDITAR ───────────────────────────────────────────────────
+
+function abrirEditar(id) {
+  const p = pedidos.find(x=>x["ID"]===id);
   if (!p) return;
-  document.getElementById("e-id").value = p["ID"] || "";
-  document.getElementById("e-nombre").value = p["Nombre cliente"] || "";
-  document.getElementById("e-fecha").value = p["Fecha"] || "";
-  document.getElementById("e-version").value = p["Versión camiseta"] || "";
-  document.getElementById("e-talla").value = p["Talla / diseño"] || "";
-  document.getElementById("e-personalizacion").value = p["Camiseta (nombre/número/parche)"] || "";
-  document.getElementById("e-precio").value = p["Precio (€)"] || "";
-  document.getElementById("e-pago").value = p["Método de pago"] || "";
-  document.getElementById("e-estado").value = p["Estado"] || "";
-  document.getElementById("e-notas").value = p["Notas"] || "";
+  document.getElementById("e-id").value = p["ID"]||"";
+  document.getElementById("e-nombre").value = p["Nombre cliente"]||"";
+  // Convert fecha to yyyy-mm-dd for input
+  let fecha = p["Fecha"]||"";
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(fecha)) {
+    const [d,m,y] = fecha.split("/");
+    fecha = y+"-"+m+"-"+d;
+  }
+  document.getElementById("e-fecha").value = fecha;
+  document.getElementById("e-pago").value = p["Método de pago"]||"";
+  document.getElementById("e-estado").value = p["Estado"]||"";
+  document.getElementById("e-pagado").value = p["Pagado"]||"No";
+  document.getElementById("e-notas").value = p["Notas"]||"";
+
+  // Items
+  const cont = document.getElementById("e-items-container");
+  cont.innerHTML = "";
+  (p.items||[]).forEach(it => {
+    const localId = ++itemCounter;
+    const div = document.createElement("div");
+    div.className = "item-block";
+    div.dataset.itemid = localId;
+    div.innerHTML = `
+      <div class="item-block-title">Producto #${localId}</div>
+      <button class="remove-item-btn" onclick="removeItem(this,'e-items-container','e-precio-display')" title="Eliminar">×</button>
+      <div class="form-grid-3">
+        <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" class="i-item" value="${sanitize(it["Item"]||"")}" maxlength="100"></div>
+        <div class="fg"><label>Versión</label>
+          <select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option></select>
+        </div>
+        <div class="fg"><label>Talla</label><input type="text" class="i-talla" value="${sanitize(it["Talla"]||"")}" maxlength="20"></div>
+        <div class="fg"><label>Nombre y número</label><input type="text" class="i-nombren" value="${sanitize(it["Nombre y Número"]||"")}" maxlength="80"></div>
+        <div class="fg"><label>Parche</label><input type="text" class="i-parche" value="${sanitize(it["Parche"]||"")}" maxlength="80"></div>
+        <div class="fg"><label>Precio venta (€)</label><input type="number" class="i-precio" value="${parseFloat(it["Precio venta"])||0}" step="0.01" min="0" max="9999" oninput="recalcTotal('e-precio-display')"></div>
+        <div class="fg"><label>Lo que pago (€)</label><input type="number" class="i-loquepago" value="${parseFloat(it["Lo que pago"])||0}" step="0.01" min="0" max="9999"></div>
+      </div>`;
+    cont.appendChild(div);
+    // Set version
+    const sel = div.querySelector(".i-version");
+    if (sel) sel.value = it["Versión"]||"";
+  });
+  recalcTotal("e-precio-display");
   document.getElementById("modal-editar").classList.add("open");
 }
 
 function cerrarModal() { document.getElementById("modal-editar").classList.remove("open"); }
 
 async function actualizarPedido() {
-  const precio = Math.min(Math.max(parseFloat(document.getElementById("e-precio").value) || 0, 0), 9999);
+  const items = getItemsFromContainer("e-items-container");
+  const precioTotal = items.reduce((s,i)=>s+i.precioVenta,0);
   const data = {
     "ID": document.getElementById("e-id").value,
-    "Fecha": validateField(document.getElementById("e-fecha").value, 20),
-    "Nombre cliente": validateField(document.getElementById("e-nombre").value, 100),
-    "Versión camiseta": validateField(document.getElementById("e-version").value, 20),
-    "Talla / diseño": validateField(document.getElementById("e-talla").value, 50),
-    "Camiseta (nombre/número/parche)": validateField(document.getElementById("e-personalizacion").value, 150),
-    "Precio (€)": precio.toFixed(2),
-    "Método de pago": validateField(document.getElementById("e-pago").value, 30),
-    "Estado": validateField(document.getElementById("e-estado").value, 20),
-    "Notas": validateField(document.getElementById("e-notas").value, 300)
+    "Fecha": formatFecha(val("e-fecha",20)),
+    "Nombre cliente": val("e-nombre",100),
+    "Método de pago": val("e-pago",30),
+    "Estado": val("e-estado",30),
+    "Pagado": val("e-pagado",5),
+    "Precio total": precioTotal.toFixed(2),
+    "Notas": val("e-notas",300),
+    items
   };
-  const res = await apiCall({ action: "updatePedido", token: sessionToken, data: JSON.stringify(data) });
+  const res = await apiCall({ action:"updatePedido", token:sessionToken, data:JSON.stringify(data) });
   if (res && res.ok) { showToast("Pedido actualizado ✓"); cerrarModal(); await cargarDatos(); }
 }
 
 async function marcarEntregado(id) {
-  const p = pedidos.find(x => x["ID"] === id);
+  const p = pedidos.find(x=>x["ID"]===id);
   if (!p) return;
-  const data = { ...p, "Estado": "Entregado" };
-  delete data._row;
-  const res = await apiCall({ action: "updatePedido", token: sessionToken, data: JSON.stringify(data) });
+  const data = { ...p, "Estado":"Entregado", items:p.items||[] };
+  const res = await apiCall({ action:"updatePedido", token:sessionToken, data:JSON.stringify(data) });
   if (res && res.ok) { showToast("Marcado como entregado ✓"); await cargarDatos(); }
 }
 
 async function eliminarPedido(id) {
   if (!confirm("¿Borrar este pedido? Esta acción no se puede deshacer.")) return;
-  const res = await apiCall({ action: "deletePedido", token: sessionToken, id });
+  const res = await apiCall({ action:"deletePedido", token:sessionToken, id });
   if (res && res.ok) { showToast("Pedido eliminado"); await cargarDatos(); }
+}
+
+// ── RESUMEN ──────────────────────────────────────────────────
+
+function renderResumen() {
+  const total = pedidos.length;
+  const pend = pedidos.filter(p=>p["Estado"]==="Pendiente de pedido").length;
+  const ped = pedidos.filter(p=>p["Estado"]==="Pedido").length;
+  const env = pedidos.filter(p=>p["Estado"]==="Enviado").length;
+  const ent = pedidos.filter(p=>p["Estado"]==="Entregado").length;
+
+  const facturado = pedidos.filter(p=>p["Pagado"]==="Sí").reduce((s,p)=>s+(parseFloat(p["Precio total"])||0),0);
+  const falta = pedidos.filter(p=>p["Pagado"]!=="Sí").reduce((s,p)=>s+(parseFloat(p["Precio total"])||0),0);
+
+  // Ganancias = facturado - suma de "lo que pago" de pedidos pagados
+  let coste = 0;
+  pedidos.filter(p=>p["Pagado"]==="Sí").forEach(p => {
+    (p.items||[]).forEach(it => { coste += parseFloat(it["Lo que pago"])||0; });
+  });
+  const ganancia = facturado - coste;
+
+  document.getElementById("st-total").textContent = total;
+  document.getElementById("st-pend").textContent = pend;
+  document.getElementById("st-pedido").textContent = ped;
+  document.getElementById("st-enviado").textContent = env;
+  document.getElementById("st-entregado").textContent = ent;
+  document.getElementById("st-facturado").textContent = facturado.toFixed(2)+" €";
+  document.getElementById("st-falta").textContent = falta.toFixed(2)+" €";
+  document.getElementById("st-ganancia").textContent = ganancia.toFixed(2)+" €";
+
+  // Chart
+  const versiones = ["Fan","Player","Retro","Kids","Women","Conjunto","Chandal"];
+  const counts = versiones.map(v => {
+    let c = 0;
+    pedidos.forEach(p => { (p.items||[]).forEach(it => { if(it["Versión"]===v) c++; }); });
+    return c;
+  });
+  const maxC = Math.max(...counts,1);
+  document.getElementById("chart-versiones").innerHTML = versiones.map((v,i)=>`
+    <div class="bar-wrap">
+      <div class="bar-val">${counts[i]}</div>
+      <div class="bar" style="height:${Math.round((counts[i]/maxC)*60)+4}px"></div>
+      <div class="bar-label">${v}</div>
+    </div>`).join("");
 }
 
 function showToast(msg) {
   const t = document.getElementById("toast");
-  t.textContent = msg;
-  t.classList.add("show");
-  setTimeout(() => t.classList.remove("show"), 2500);
+  t.textContent = msg; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),2500);
 }
 
+// Init
+document.getElementById("f-fecha").value = new Date().toISOString().split("T")[0];
 checkSession();
 </script>
 </body>
