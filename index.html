@@ -323,7 +323,15 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 <div class="toast" id="toast"></div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvBLoQ4Ymw1OJG55xU9B-yg3We5snqIhL5WemyDL0EIQ07KXAp2558KdLmo4H_-_fo/exec";
+function localDateStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+day;
+}
+
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymWTC7awASLZQSM79yjl5iL-D_bd7NxJYrQf3-KrglPlSHpfZU3hXTInHzZQFxoRCy/exec";
 const TOKEN_KEY = "ped_token";
 const TOKEN_EXPIRY_KEY = "ped_token_expiry";
 
@@ -535,7 +543,7 @@ function renderPedidos() {
     const pagado = p["Pagado"]||"No";
     const metodoPago = sanitize(p["Método de pago"]||"—");
     const fecha = formatFecha(p["Fecha"]);
-    const pagadoLoz = pagado==="Si" ? `<span class="loz loz-si">Sí</span>` : `<span class="loz loz-no">No</span>`;
+    const pagadoLoz = (pagado==="Si"||pagado==="Sí") ? `<span class="loz loz-si">Sí</span>` : `<span class="loz loz-no">No</span>`;
     const pagoLoz = p["Método de pago"]==="Bizum" ? `<span class="loz loz-bizum">Bizum</span>` : p["Método de pago"]==="Efectivo" ? `<span class="loz loz-efectivo">Efectivo</span>` : `<span style="color:var(--muted)">—</span>`;
 
     // Detail table rows (no "lo que pago")
@@ -613,14 +621,7 @@ async function guardarPedido() {
 function limpiarNuevo() {
   ["f-nombre","f-notas"].forEach(id=>document.getElementById(id).value="");
   ["f-pago-met","f-estado-new","f-pagado"].forEach(id=>document.getElementById(id).selectedIndex=0);
-  function localDateStr() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,"0");
-  const day = String(d.getDate()).padStart(2,"0");
-  return y+"-"+m+"-"+day;
-}
-document.getElementById("f-fecha").value = localDateStr();
+  document.getElementById("f-fecha").value = localDateStr();
   document.getElementById("items-container").innerHTML="";
   document.getElementById("precio-total-display").textContent="0.00 €";
   itemCounter=0;
@@ -642,7 +643,8 @@ function abrirEditar(id) {
   document.getElementById("e-fecha").value = fecha;
   document.getElementById("e-pago").value = p["Método de pago"]||"";
   document.getElementById("e-estado").value = p["Estado"]||"";
-  document.getElementById("e-pagado").value = p["Pagado"]||"No";
+  const pagadoVal = p["Pagado"]||"No";
+  document.getElementById("e-pagado").value = (pagadoVal==="Sí") ? "Si" : pagadoVal;
   document.getElementById("e-notas").value = p["Notas"]||"";
 
   // Items
@@ -719,12 +721,12 @@ function renderResumen() {
   const env = pedidos.filter(p=>p["Estado"]==="Enviado").length;
   const ent = pedidos.filter(p=>p["Estado"]==="Entregado").length;
 
-  const facturado = pedidos.filter(p=>p["Pagado"]==="Si").reduce((s,p)=>s+(parseFloat(p["Precio total"])||0),0);
+  const facturado = pedidos.filter(p=>p["Pagado"]==="Si"||p["Pagado"]==="Sí").reduce((s,p)=>s+(parseFloat(p["Precio total"])||0),0);
   const falta = pedidos.filter(p=>p["Pagado"]!=="Sí").reduce((s,p)=>s+(parseFloat(p["Precio total"])||0),0);
 
   // Ganancias = facturado - suma de "lo que pago" de pedidos pagados
   let coste = 0;
-  pedidos.filter(p=>p["Pagado"]==="Si").forEach(p => {
+  pedidos.filter(p=>p["Pagado"]==="Si"||p["Pagado"]==="Sí").forEach(p => {
     (p.items||[]).forEach(it => { coste += parseFloat(it["Lo que pago"])||0; });
   });
   const ganancia = facturado - coste;
@@ -761,13 +763,6 @@ function showToast(msg) {
 }
 
 // Init
-function localDateStr() {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth()+1).padStart(2,"0");
-  const day = String(d.getDate()).padStart(2,"0");
-  return y+"-"+m+"-"+day;
-}
 document.getElementById("f-fecha").value = localDateStr();
 checkSession();
 </script>
