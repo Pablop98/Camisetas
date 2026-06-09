@@ -1,0 +1,618 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Gestión de pedidos</title>
+<style>
+  :root {
+    --bg: #f7f6f3;
+    --surface: #ffffff;
+    --border: #e2e0da;
+    --text: #1a1a18;
+    --muted: #7a7870;
+    --accent: #1a3a5c;
+    --accent-light: #e8f0f8;
+    --green: #1d6b4a;
+    --green-bg: #e6f4ee;
+    --amber: #8a5a00;
+    --amber-bg: #fdf3dc;
+    --red: #8b2020;
+    --red-bg: #fdeaea;
+    --gray: #5a5956;
+    --gray-bg: #f0efeb;
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #16161a;
+      --surface: #1e1e24;
+      --border: #2e2e38;
+      --text: #e8e6df;
+      --muted: #888680;
+      --accent: #6fa3d8;
+      --accent-light: #1a2a3a;
+      --green: #5dc8a0;
+      --green-bg: #0d2a1e;
+      --amber: #e8b84b;
+      --amber-bg: #2a1e08;
+      --red: #f08080;
+      --red-bg: #2a0e0e;
+      --gray: #a0a09a;
+      --gray-bg: #252528;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: var(--bg); color: var(--text); font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; font-size: 15px; line-height: 1.5; min-height: 100vh; }
+
+  header { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 100; }
+  header h1 { font-size: 17px; font-weight: 600; color: var(--accent); letter-spacing: -0.3px; }
+  header span { font-size: 12px; color: var(--muted); }
+
+  nav { display: flex; gap: 4px; padding: 12px 16px; background: var(--surface); border-bottom: 1px solid var(--border); overflow-x: auto; }
+  nav button { padding: 7px 14px; border: 1px solid var(--border); background: transparent; border-radius: 20px; font-size: 13px; color: var(--muted); cursor: pointer; white-space: nowrap; transition: all .15s; }
+  nav button.active { background: var(--accent); color: #fff; border-color: var(--accent); font-weight: 500; }
+
+  main { padding: 16px; max-width: 860px; margin: 0 auto; }
+
+  .section { display: none; }
+  .section.visible { display: block; }
+
+  .page-title { font-size: 20px; font-weight: 600; margin-bottom: 16px; color: var(--text); }
+
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 20px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 14px 16px; }
+  .stat-card .label { font-size: 11px; text-transform: uppercase; letter-spacing: .5px; color: var(--muted); margin-bottom: 4px; }
+  .stat-card .value { font-size: 22px; font-weight: 600; color: var(--text); }
+  .stat-card .sub { font-size: 12px; color: var(--muted); margin-top: 2px; }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 16px; margin-bottom: 12px; }
+  .card-header { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; margin-bottom: 10px; }
+  .card-name { font-weight: 600; font-size: 15px; }
+  .card-id { font-size: 11px; color: var(--muted); margin-top: 2px; }
+  .card-body { display: grid; grid-template-columns: 1fr 1fr; gap: 6px 16px; font-size: 13px; }
+  .card-body .field { color: var(--muted); }
+  .card-body .val { color: var(--text); font-weight: 500; }
+  .card-actions { display: flex; gap: 8px; margin-top: 12px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .card-actions button { flex: 1; padding: 7px; border: 1px solid var(--border); background: transparent; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; color: var(--text); transition: background .12s; }
+  .card-actions button:hover { background: var(--bg); }
+  .card-actions button.danger { color: var(--red); border-color: var(--red-bg); }
+  .card-actions button.danger:hover { background: var(--red-bg); }
+  .card-actions button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+  .badge { display: inline-block; padding: 3px 9px; border-radius: 12px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .3px; }
+  .badge-pendiente { background: var(--amber-bg); color: var(--amber); }
+  .badge-proceso { background: var(--accent-light); color: var(--accent); }
+  .badge-entregado { background: var(--green-bg); color: var(--green); }
+  .badge-cancelado { background: var(--red-bg); color: var(--red); }
+
+  .pago-badge { font-size: 12px; color: var(--muted); background: var(--bg); padding: 2px 8px; border-radius: 10px; border: 1px solid var(--border); }
+
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 520px) { .form-grid { grid-template-columns: 1fr; } .card-body { grid-template-columns: 1fr; } }
+  .form-group { display: flex; flex-direction: column; gap: 5px; }
+  .form-group.full { grid-column: 1 / -1; }
+  .form-group label { font-size: 12px; font-weight: 500; color: var(--muted); text-transform: uppercase; letter-spacing: .4px; }
+  .form-group input, .form-group select, .form-group textarea {
+    padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm);
+    background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit;
+    transition: border-color .15s;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus { outline: none; border-color: var(--accent); }
+  .form-group textarea { resize: vertical; min-height: 70px; }
+
+  .btn { padding: 10px 20px; border-radius: var(--radius-sm); font-size: 14px; font-weight: 500; cursor: pointer; transition: all .15s; border: 1px solid transparent; }
+  .btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn-primary:hover { opacity: .9; }
+  .btn-secondary { background: transparent; color: var(--text); border-color: var(--border); }
+  .btn-secondary:hover { background: var(--bg); }
+  .btn-row { display: flex; gap: 10px; margin-top: 6px; }
+
+  .filter-bar { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+  .filter-bar input { flex: 1; min-width: 140px; padding: 8px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-size: 13px; }
+  .filter-bar select { padding: 8px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); color: var(--text); font-size: 13px; }
+
+  .empty { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 14px; }
+  .empty .icon { font-size: 40px; margin-bottom: 10px; }
+
+  .config-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; margin-bottom: 14px; }
+  .config-card h3 { font-size: 15px; font-weight: 600; margin-bottom: 12px; }
+  .config-card p { font-size: 13px; color: var(--muted); margin-bottom: 12px; line-height: 1.6; }
+  .config-card code { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: monospace; border: 1px solid var(--border); }
+
+  .url-input-row { display: flex; gap: 8px; }
+  .url-input-row input { flex: 1; padding: 9px 11px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 13px; font-family: monospace; }
+
+  .toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: var(--radius); font-size: 13px; font-weight: 500; z-index: 999; opacity: 0; transition: opacity .2s; pointer-events: none; }
+  .toast.show { opacity: 1; }
+
+  .modal-backdrop { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 200; align-items: center; justify-content: center; padding: 16px; }
+  .modal-backdrop.open { display: flex; }
+  .modal { background: var(--surface); border-radius: var(--radius); padding: 20px; width: 100%; max-width: 520px; max-height: 90vh; overflow-y: auto; border: 1px solid var(--border); }
+  .modal h2 { font-size: 17px; font-weight: 600; margin-bottom: 16px; }
+
+  .steps { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .step { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--muted); }
+  .step-num { width: 20px; height: 20px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 600; }
+  .step.done .step-num { background: var(--green); color: #fff; }
+  .spinner { display: inline-block; width: 14px; height: 14px; border: 2px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .7s linear infinite; vertical-align: middle; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .chart-bars { display: flex; gap: 8px; align-items: flex-end; height: 80px; margin: 12px 0; }
+  .bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .bar { width: 100%; background: var(--accent); border-radius: 3px 3px 0 0; transition: height .4s; min-height: 4px; }
+  .bar-label { font-size: 10px; color: var(--muted); text-align: center; }
+  .bar-val { font-size: 11px; font-weight: 600; color: var(--text); }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>⚽ Pedidos de camisetas</h1>
+  <span id="connection-status">⚙️ Sin configurar</span>
+</header>
+
+<nav>
+  <button class="active" onclick="showSection('resumen')">Resumen</button>
+  <button onclick="showSection('pedidos')">Pedidos</button>
+  <button onclick="showSection('nuevo')">+ Nuevo</button>
+  <button onclick="showSection('config')">Configuración</button>
+</nav>
+
+<main>
+
+  <!-- RESUMEN -->
+  <section id="s-resumen" class="section visible">
+    <p class="page-title">Resumen</p>
+    <div class="stats-grid" id="stats-grid">
+      <div class="stat-card"><div class="label">Total pedidos</div><div class="value" id="st-total">—</div></div>
+      <div class="stat-card"><div class="label">Pendientes</div><div class="value" id="st-pendientes">—</div></div>
+      <div class="stat-card"><div class="label">En proceso</div><div class="value" id="st-proceso">—</div></div>
+      <div class="stat-card"><div class="label">Entregados</div><div class="value" id="st-entregados">—</div></div>
+      <div class="stat-card"><div class="label">Total facturado</div><div class="value" id="st-euro">—</div><div class="sub">pedidos entregados</div></div>
+      <div class="stat-card"><div class="label">Total cobrado</div><div class="value" id="st-cobrado">—</div><div class="sub">efectivo + bizum</div></div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:13px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:10px;">Pedidos por versión</div>
+      <div class="chart-bars" id="chart-versiones"></div>
+    </div>
+
+    <div class="card">
+      <div style="font-size:13px; font-weight:600; color:var(--muted); text-transform:uppercase; letter-spacing:.4px; margin-bottom:10px;">Método de pago</div>
+      <div id="pago-breakdown" style="display:flex; gap:12px; flex-wrap:wrap;"></div>
+    </div>
+  </section>
+
+  <!-- PEDIDOS -->
+  <section id="s-pedidos" class="section">
+    <p class="page-title">Todos los pedidos</p>
+    <div class="filter-bar">
+      <input type="text" id="search" placeholder="Buscar por nombre..." oninput="renderPedidos()">
+      <select id="filter-estado" onchange="renderPedidos()">
+        <option value="">Todos los estados</option>
+        <option>Pendiente</option>
+        <option>En proceso</option>
+        <option>Entregado</option>
+        <option>Cancelado</option>
+      </select>
+      <select id="filter-pago" onchange="renderPedidos()">
+        <option value="">Todos los pagos</option>
+        <option>Efectivo</option>
+        <option>Bizum</option>
+      </select>
+    </div>
+    <div id="pedidos-list"></div>
+  </section>
+
+  <!-- NUEVO PEDIDO -->
+  <section id="s-nuevo" class="section">
+    <p class="page-title">Nuevo pedido</p>
+    <div class="card">
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Nombre del cliente</label>
+          <input type="text" id="f-nombre" placeholder="Ej. Juan García">
+        </div>
+        <div class="form-group">
+          <label>Fecha del pedido</label>
+          <input type="date" id="f-fecha">
+        </div>
+        <div class="form-group">
+          <label>Versión de la camiseta</label>
+          <select id="f-version">
+            <option value="">Selecciona...</option>
+            <option>Fan</option>
+            <option>Retro</option>
+            <option>Player</option>
+            <option>Kids</option>
+            <option>Woman</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Talla / diseño</label>
+          <input type="text" id="f-talla" placeholder="Ej. XL, adulto...">
+        </div>
+        <div class="form-group full">
+          <label>Personalización (nombre, número, parche)</label>
+          <input type="text" id="f-personalizacion" placeholder="Ej. Messi 10, parche Liga">
+        </div>
+        <div class="form-group">
+          <label>Precio (€)</label>
+          <input type="number" id="f-precio" placeholder="0.00" step="0.01" min="0">
+        </div>
+        <div class="form-group">
+          <label>Método de pago</label>
+          <select id="f-pago">
+            <option value="">Selecciona...</option>
+            <option>Efectivo</option>
+            <option>Bizum</option>
+            <option>Pendiente de pago</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Estado inicial</label>
+          <select id="f-estado">
+            <option>Pendiente</option>
+            <option>En proceso</option>
+            <option>Entregado</option>
+          </select>
+        </div>
+        <div class="form-group full">
+          <label>Notas (opcional)</label>
+          <textarea id="f-notas" placeholder="Observaciones, detalles especiales..."></textarea>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-primary" onclick="guardarPedido()">Guardar pedido</button>
+        <button class="btn btn-secondary" onclick="limpiarForm()">Limpiar</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONFIGURACIÓN -->
+  <section id="s-config" class="section">
+    <p class="page-title">Configuración</p>
+
+    <div class="config-card">
+      <h3>🔗 URL de conexión a Google Sheets</h3>
+      <p>Para conectar esta app a tu Google Sheet, sigue los pasos de la guía incluida y pega aquí la URL del Web App generada.</p>
+      <div class="url-input-row">
+        <input type="url" id="script-url" placeholder="https://script.google.com/macros/s/..." value="">
+        <button class="btn btn-primary" onclick="guardarURL()">Guardar</button>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h3>📋 Estado de la conexión</h3>
+      <div id="config-status" style="font-size:13px; color:var(--muted);">Sin URL configurada.</div>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn btn-secondary" onclick="testConnection()">Probar conexión</button>
+        <button class="btn btn-secondary" onclick="cargarDatos()">↺ Recargar datos</button>
+      </div>
+    </div>
+
+    <div class="config-card">
+      <h3>ℹ️ Pasos de instalación</h3>
+      <div class="steps">
+        <div class="step done"><div class="step-num">1</div><span>Descarga el ZIP</span></div>
+        <div class="step"><div class="step-num">2</div><span>Crea el Sheet</span></div>
+        <div class="step"><div class="step-num">3</div><span>Apps Script</span></div>
+        <div class="step"><div class="step-num">4</div><span>Despliega</span></div>
+        <div class="step"><div class="step-num">5</div><span>Pega la URL</span></div>
+      </div>
+      <p>Consulta el archivo <code>INSTRUCCIONES.md</code> incluido en el ZIP para el proceso completo paso a paso.</p>
+    </div>
+  </section>
+
+</main>
+
+<!-- Modal editar -->
+<div class="modal-backdrop" id="modal-editar">
+  <div class="modal">
+    <h2>Editar pedido</h2>
+    <div class="form-grid">
+      <input type="hidden" id="e-id">
+      <div class="form-group">
+        <label>Nombre del cliente</label>
+        <input type="text" id="e-nombre">
+      </div>
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="e-fecha">
+      </div>
+      <div class="form-group">
+        <label>Versión</label>
+        <select id="e-version">
+          <option>Fan</option><option>Retro</option><option>Player</option><option>Kids</option><option>Woman</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Talla / diseño</label>
+        <input type="text" id="e-talla">
+      </div>
+      <div class="form-group full">
+        <label>Personalización</label>
+        <input type="text" id="e-personalizacion">
+      </div>
+      <div class="form-group">
+        <label>Precio (€)</label>
+        <input type="number" id="e-precio" step="0.01">
+      </div>
+      <div class="form-group">
+        <label>Método de pago</label>
+        <select id="e-pago">
+          <option>Efectivo</option><option>Bizum</option><option>Pendiente de pago</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Estado</label>
+        <select id="e-estado">
+          <option>Pendiente</option><option>En proceso</option><option>Entregado</option><option>Cancelado</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Notas</label>
+        <textarea id="e-notas"></textarea>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick="actualizarPedido()">Guardar cambios</button>
+      <button class="btn btn-secondary" onclick="cerrarModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let pedidos = [];
+let scriptURL = localStorage.getItem("scriptURL") || "";
+
+if (scriptURL) {
+  document.getElementById("script-url").value = scriptURL;
+  document.getElementById("connection-status").textContent = "✅ Conectado";
+  cargarDatos();
+}
+
+const today = new Date().toISOString().split("T")[0];
+document.getElementById("f-fecha").value = today;
+
+function showSection(id) {
+  document.querySelectorAll(".section").forEach(s => s.classList.remove("visible"));
+  document.querySelectorAll("nav button").forEach(b => b.classList.remove("active"));
+  document.getElementById("s-" + id).classList.add("visible");
+  event.target.classList.add("active");
+  if (id === "resumen") renderResumen();
+  if (id === "pedidos") renderPedidos();
+}
+
+function guardarURL() {
+  const url = document.getElementById("script-url").value.trim();
+  if (!url.startsWith("https://script.google.com")) {
+    showToast("URL inválida. Debe empezar con https://script.google.com");
+    return;
+  }
+  scriptURL = url;
+  localStorage.setItem("scriptURL", url);
+  document.getElementById("connection-status").textContent = "✅ Conectado";
+  showToast("URL guardada ✓");
+  cargarDatos();
+}
+
+async function apiCall(params) {
+  if (!scriptURL) { showToast("⚙️ Configura la URL primero"); return null; }
+  const url = scriptURL + "?" + new URLSearchParams(params).toString();
+  try {
+    const res = await fetch(url);
+    return await res.json();
+  } catch (e) {
+    showToast("Error de conexión");
+    return null;
+  }
+}
+
+async function cargarDatos() {
+  document.getElementById("connection-status").textContent = "⏳ Cargando...";
+  const data = await apiCall({ action: "getPedidos" });
+  if (data && data.pedidos) {
+    pedidos = data.pedidos;
+    document.getElementById("connection-status").textContent = "✅ " + pedidos.length + " pedidos";
+    renderResumen();
+    renderPedidos();
+    document.getElementById("config-status").textContent = "✅ Conexión correcta. " + pedidos.length + " pedidos cargados.";
+  } else {
+    document.getElementById("connection-status").textContent = "❌ Error";
+    document.getElementById("config-status").textContent = "❌ No se pudo conectar. Revisa la URL.";
+  }
+}
+
+async function testConnection() {
+  document.getElementById("config-status").textContent = "⏳ Probando...";
+  await cargarDatos();
+}
+
+function renderResumen() {
+  const total = pedidos.length;
+  const pendientes = pedidos.filter(p => p["Estado"] === "Pendiente").length;
+  const proceso = pedidos.filter(p => p["Estado"] === "En proceso").length;
+  const entregados = pedidos.filter(p => p["Estado"] === "Entregado").length;
+  const facturado = pedidos.filter(p => p["Estado"] === "Entregado").reduce((s, p) => s + (parseFloat(p["Precio (€)"]) || 0), 0);
+  const cobrado = pedidos.filter(p => p["Método de pago"] !== "Pendiente de pago").reduce((s, p) => s + (parseFloat(p["Precio (€)"]) || 0), 0);
+
+  document.getElementById("st-total").textContent = total;
+  document.getElementById("st-pendientes").textContent = pendientes;
+  document.getElementById("st-proceso").textContent = proceso;
+  document.getElementById("st-entregados").textContent = entregados;
+  document.getElementById("st-euro").textContent = facturado.toFixed(2) + " €";
+  document.getElementById("st-cobrado").textContent = cobrado.toFixed(2) + " €";
+
+  const versiones = ["Fan","Retro","Player","Kids","Woman"];
+  const counts = versiones.map(v => pedidos.filter(p => p["Versión camiseta"] === v).length);
+  const maxC = Math.max(...counts, 1);
+  const chart = document.getElementById("chart-versiones");
+  chart.innerHTML = versiones.map((v, i) => `
+    <div class="bar-wrap">
+      <div class="bar-val">${counts[i]}</div>
+      <div class="bar" style="height:${Math.round((counts[i]/maxC)*60)+4}px"></div>
+      <div class="bar-label">${v}</div>
+    </div>`).join("");
+
+  const pagoEl = document.getElementById("pago-breakdown");
+  const efectivo = pedidos.filter(p => p["Método de pago"] === "Efectivo").length;
+  const bizum = pedidos.filter(p => p["Método de pago"] === "Bizum").length;
+  const pendPago = pedidos.filter(p => p["Método de pago"] === "Pendiente de pago").length;
+  pagoEl.innerHTML = [
+    { label: "Efectivo", val: efectivo, cls: "badge-entregado" },
+    { label: "Bizum", val: bizum, cls: "badge-proceso" },
+    { label: "Pendiente", val: pendPago, cls: "badge-pendiente" }
+  ].map(x => `<div style="display:flex;align-items:center;gap:6px;font-size:13px;"><span class="badge ${x.cls}">${x.val}</span>${x.label}</div>`).join("");
+}
+
+function renderPedidos() {
+  const search = (document.getElementById("search")?.value || "").toLowerCase();
+  const est = document.getElementById("filter-estado")?.value || "";
+  const pago = document.getElementById("filter-pago")?.value || "";
+
+  let filtered = pedidos.filter(p => {
+    const nombre = (p["Nombre cliente"] || "").toLowerCase();
+    if (search && !nombre.includes(search)) return false;
+    if (est && p["Estado"] !== est) return false;
+    if (pago && p["Método de pago"] !== pago) return false;
+    return true;
+  });
+
+  const container = document.getElementById("pedidos-list");
+  if (!filtered.length) {
+    container.innerHTML = `<div class="empty"><div class="icon">📦</div>No hay pedidos que mostrar</div>`;
+    return;
+  }
+
+  const estadoBadge = {
+    "Pendiente": "badge-pendiente",
+    "En proceso": "badge-proceso",
+    "Entregado": "badge-entregado",
+    "Cancelado": "badge-cancelado"
+  };
+
+  container.innerHTML = filtered.slice().reverse().map(p => `
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-name">${p["Nombre cliente"] || "Sin nombre"}</div>
+          <div class="card-id">${p["ID"]} · ${p["Fecha"]}</div>
+        </div>
+        <span class="badge ${estadoBadge[p["Estado"]] || ""}">${p["Estado"]}</span>
+      </div>
+      <div class="card-body">
+        <span class="field">Versión</span><span class="val">${p["Versión camiseta"] || "—"}</span>
+        <span class="field">Talla</span><span class="val">${p["Talla / diseño"] || "—"}</span>
+        <span class="field">Personalización</span><span class="val">${p["Camiseta (nombre/número/parche)"] || "—"}</span>
+        <span class="field">Precio</span><span class="val">${parseFloat(p["Precio (€)"]).toFixed(2)} €</span>
+        <span class="field">Pago</span><span class="val"><span class="pago-badge">${p["Método de pago"] || "—"}</span></span>
+        ${p["Notas"] ? `<span class="field">Notas</span><span class="val">${p["Notas"]}</span>` : ""}
+      </div>
+      <div class="card-actions">
+        <button onclick='abrirEditar(${JSON.stringify(p)})'>✏️ Editar</button>
+        <button class="primary" onclick="marcarEntregado('${p["ID"]}')">✓ Entregado</button>
+        <button class="danger" onclick="eliminarPedido('${p["ID"]}')">🗑 Borrar</button>
+      </div>
+    </div>`).join("");
+}
+
+async function guardarPedido() {
+  const nombre = document.getElementById("f-nombre").value.trim();
+  if (!nombre) { showToast("El nombre es obligatorio"); return; }
+
+  const data = {
+    nombre,
+    fecha: document.getElementById("f-fecha").value,
+    version: document.getElementById("f-version").value,
+    talla: document.getElementById("f-talla").value,
+    personalizacion: document.getElementById("f-personalizacion").value,
+    precio: document.getElementById("f-precio").value,
+    pago: document.getElementById("f-pago").value,
+    estado: document.getElementById("f-estado").value,
+    notas: document.getElementById("f-notas").value
+  };
+
+  const res = await apiCall({ action: "addPedido", data: JSON.stringify(data) });
+  if (res && res.ok) {
+    showToast("Pedido guardado ✓");
+    limpiarForm();
+    await cargarDatos();
+  }
+}
+
+function limpiarForm() {
+  ["f-nombre","f-talla","f-personalizacion","f-precio","f-notas"].forEach(id => document.getElementById(id).value = "");
+  ["f-version","f-pago"].forEach(id => document.getElementById(id).selectedIndex = 0);
+  document.getElementById("f-estado").value = "Pendiente";
+  document.getElementById("f-fecha").value = today;
+}
+
+function abrirEditar(p) {
+  document.getElementById("e-id").value = p["ID"];
+  document.getElementById("e-nombre").value = p["Nombre cliente"] || "";
+  document.getElementById("e-fecha").value = p["Fecha"] || "";
+  document.getElementById("e-version").value = p["Versión camiseta"] || "";
+  document.getElementById("e-talla").value = p["Talla / diseño"] || "";
+  document.getElementById("e-personalizacion").value = p["Camiseta (nombre/número/parche)"] || "";
+  document.getElementById("e-precio").value = p["Precio (€)"] || "";
+  document.getElementById("e-pago").value = p["Método de pago"] || "";
+  document.getElementById("e-estado").value = p["Estado"] || "";
+  document.getElementById("e-notas").value = p["Notas"] || "";
+  document.getElementById("modal-editar").classList.add("open");
+}
+
+function cerrarModal() {
+  document.getElementById("modal-editar").classList.remove("open");
+}
+
+async function actualizarPedido() {
+  const id = document.getElementById("e-id").value;
+  const data = {
+    "ID": id,
+    "Fecha": document.getElementById("e-fecha").value,
+    "Nombre cliente": document.getElementById("e-nombre").value,
+    "Versión camiseta": document.getElementById("e-version").value,
+    "Talla / diseño": document.getElementById("e-talla").value,
+    "Camiseta (nombre/número/parche)": document.getElementById("e-personalizacion").value,
+    "Precio (€)": document.getElementById("e-precio").value,
+    "Método de pago": document.getElementById("e-pago").value,
+    "Estado": document.getElementById("e-estado").value,
+    "Notas": document.getElementById("e-notas").value
+  };
+  const res = await apiCall({ action: "updatePedido", data: JSON.stringify(data) });
+  if (res && res.ok) {
+    showToast("Pedido actualizado ✓");
+    cerrarModal();
+    await cargarDatos();
+  }
+}
+
+async function marcarEntregado(id) {
+  const p = pedidos.find(x => x["ID"] === id);
+  if (!p) return;
+  const data = { ...p, "Estado": "Entregado" };
+  delete data._row;
+  const res = await apiCall({ action: "updatePedido", data: JSON.stringify(data) });
+  if (res && res.ok) { showToast("Marcado como entregado ✓"); await cargarDatos(); }
+}
+
+async function eliminarPedido(id) {
+  if (!confirm("¿Borrar este pedido? Esta acción no se puede deshacer.")) return;
+  const res = await apiCall({ action: "deletePedido", id });
+  if (res && res.ok) { showToast("Pedido eliminado"); await cargarDatos(); }
+}
+
+function showToast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2500);
+}
+</script>
+</body>
+</html>
