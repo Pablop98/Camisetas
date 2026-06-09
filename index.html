@@ -228,7 +228,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
             </select>
           </div>
           <div class="fg"><label>Pagado</label>
-            <select id="f-pagado"><option>No</option><option>Sí</option></select>
+            <select id="f-pagado"><option value="No">No</option><option value="Si">Sí</option></select>
           </div>
           <div class="fg"><label>Precio total</label>
             <div class="precio-total-display" id="precio-total-display">0.00 €</div>
@@ -301,7 +301,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
         <select id="e-estado"><option>Pendiente de pedido</option><option>Pedido</option><option>Enviado</option><option>Entregado</option></select>
       </div>
       <div class="fg"><label>Pagado</label>
-        <select id="e-pagado"><option>No</option><option>Sí</option></select>
+        <select id="e-pagado"><option value="No">No</option><option value="Si">Sí</option></select>
       </div>
       <div class="fg"><label>Precio total</label>
         <div class="precio-total-display" id="e-precio-display">0.00 €</div>
@@ -323,7 +323,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 <div class="toast" id="toast"></div>
 
 <script>
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzs3HbffpGZzbFyyLjKTV058oP4VUZYlRUP7BaYvw-WZ45ygv9aAFadiiHg6yFNxNc/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxvBLoQ4Ymw1OJG55xU9B-yg3We5snqIhL5WemyDL0EIQ07KXAp2558KdLmo4H_-_fo/exec";
 const TOKEN_KEY = "ped_token";
 const TOKEN_EXPIRY_KEY = "ped_token_expiry";
 
@@ -386,9 +386,21 @@ function checkSession() {
 // ── API ─────────────────────────────────────────────────────
 
 async function apiCall(params) {
-  const url = SCRIPT_URL + "?" + new URLSearchParams(params).toString();
+  // Use POST for actions that carry a data payload to avoid URL length limits
+  const hasPayload = params.data !== undefined;
   try {
-    const res = await fetch(url);
+    let res;
+    if (hasPayload) {
+      const body = new URLSearchParams(params);
+      res = await fetch(SCRIPT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: body.toString()
+      });
+    } else {
+      const url = SCRIPT_URL + "?" + new URLSearchParams(params).toString();
+      res = await fetch(url);
+    }
     const data = await res.json();
     if (data.auth === false) { showToast("Sesión expirada"); doLogout(); return null; }
     return data;
@@ -523,7 +535,7 @@ function renderPedidos() {
     const pagado = p["Pagado"]||"No";
     const metodoPago = sanitize(p["Método de pago"]||"—");
     const fecha = formatFecha(p["Fecha"]);
-    const pagadoLoz = pagado==="Sí" ? `<span class="loz loz-si">Sí</span>` : `<span class="loz loz-no">No</span>`;
+    const pagadoLoz = pagado==="Si" ? `<span class="loz loz-si">Sí</span>` : `<span class="loz loz-no">No</span>`;
     const pagoLoz = p["Método de pago"]==="Bizum" ? `<span class="loz loz-bizum">Bizum</span>` : p["Método de pago"]==="Efectivo" ? `<span class="loz loz-efectivo">Efectivo</span>` : `<span style="color:var(--muted)">—</span>`;
 
     // Detail table rows (no "lo que pago")
@@ -601,7 +613,14 @@ async function guardarPedido() {
 function limpiarNuevo() {
   ["f-nombre","f-notas"].forEach(id=>document.getElementById(id).value="");
   ["f-pago-met","f-estado-new","f-pagado"].forEach(id=>document.getElementById(id).selectedIndex=0);
-  document.getElementById("f-fecha").value = new Date().toISOString().split("T")[0];
+  function localDateStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+day;
+}
+document.getElementById("f-fecha").value = localDateStr();
   document.getElementById("items-container").innerHTML="";
   document.getElementById("precio-total-display").textContent="0.00 €";
   itemCounter=0;
@@ -700,12 +719,12 @@ function renderResumen() {
   const env = pedidos.filter(p=>p["Estado"]==="Enviado").length;
   const ent = pedidos.filter(p=>p["Estado"]==="Entregado").length;
 
-  const facturado = pedidos.filter(p=>p["Pagado"]==="Sí").reduce((s,p)=>s+(parseFloat(p["Precio total"])||0),0);
+  const facturado = pedidos.filter(p=>p["Pagado"]==="Si").reduce((s,p)=>s+(parseFloat(p["Precio total"])||0),0);
   const falta = pedidos.filter(p=>p["Pagado"]!=="Sí").reduce((s,p)=>s+(parseFloat(p["Precio total"])||0),0);
 
   // Ganancias = facturado - suma de "lo que pago" de pedidos pagados
   let coste = 0;
-  pedidos.filter(p=>p["Pagado"]==="Sí").forEach(p => {
+  pedidos.filter(p=>p["Pagado"]==="Si").forEach(p => {
     (p.items||[]).forEach(it => { coste += parseFloat(it["Lo que pago"])||0; });
   });
   const ganancia = facturado - coste;
@@ -742,7 +761,14 @@ function showToast(msg) {
 }
 
 // Init
-document.getElementById("f-fecha").value = new Date().toISOString().split("T")[0];
+function localDateStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return y+"-"+m+"-"+day;
+}
+document.getElementById("f-fecha").value = localDateStr();
 checkSession();
 </script>
 </body>
