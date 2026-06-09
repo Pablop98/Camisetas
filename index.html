@@ -331,7 +331,7 @@ function localDateStr() {
   return y+"-"+m+"-"+day;
 }
 
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbymWTC7awASLZQSM79yjl5iL-D_bd7NxJYrQf3-KrglPlSHpfZU3hXTInHzZQFxoRCy/exec";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx025fpRUQIwdcs6lHB3lrjZywqc-QkX6SENNd_Q3FILBt6jjqyyO5Er-vJY_fNJ4qh/exec";
 const TOKEN_KEY = "ped_token";
 const TOKEN_EXPIRY_KEY = "ped_token_expiry";
 
@@ -445,15 +445,27 @@ function sanitize(str) {
 }
 function val(id, max=200) { return String(document.getElementById(id)?.value??"").trim().slice(0,max); }
 function formatFecha(f) {
-  if (!f) return "—";
-  // If it's already dd/mm/yyyy
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(String(f))) return f;
-  // If yyyy-mm-dd
-  if (/^\d{4}-\d{2}-\d{2}$/.test(String(f))) {
-    const [y,m,d] = String(f).split("-");
-    return d+"/"+m+"/"+y;
+  if (!f || f === "") return "—";
+  const s = String(f);
+  // Already dd/mm/yyyy
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) return s;
+  // yyyy-mm-dd or ISO datetime 2026-06-08T22:00:00.000Z
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) {
+    const parts = s.slice(0,10).split("-");
+    return parts[2]+"/"+parts[1]+"/"+parts[0];
   }
-  return String(f);
+  return s;
+}
+// Convert dd/mm/yyyy to yyyy-mm-dd for <input type="date">
+function fechaToInput(f) {
+  if (!f || f === "" || f === "—") return "";
+  const s = String(f);
+  if (/^\d{2}\/\d{2}\/\d{4}$/.test(s)) {
+    const [d,m,y] = s.split("/");
+    return y+"-"+m+"-"+d;
+  }
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return s.slice(0,10);
+  return "";
 }
 function estadoLoz(e) {
   const map = {"Pendiente de pedido":"loz-pendiente","Pedido":"loz-pedido","Enviado":"loz-enviado","Entregado":"loz-entregado"};
@@ -539,7 +551,11 @@ function renderPedidos() {
     const estado = p["Estado"]||"";
     const items = p.items||[];
     const numItems = items.length;
-    const precio = (parseFloat(p["Precio total"])||0).toFixed(2);
+    let precioNum = parseFloat(p["Precio total"])||0;
+    if (precioNum === 0 && p.items && p.items.length > 0) {
+      precioNum = p.items.reduce((s,it)=>s+(parseFloat(it["Precio venta"])||0),0);
+    }
+    const precio = precioNum.toFixed(2);
     const pagado = p["Pagado"]||"No";
     const metodoPago = sanitize(p["Método de pago"]||"—");
     const fecha = formatFecha(p["Fecha"]);
@@ -634,13 +650,7 @@ function abrirEditar(id) {
   if (!p) return;
   document.getElementById("e-id").value = p["ID"]||"";
   document.getElementById("e-nombre").value = p["Nombre cliente"]||"";
-  // Convert fecha to yyyy-mm-dd for input
-  let fecha = p["Fecha"]||"";
-  if (/^\d{2}\/\d{2}\/\d{4}$/.test(fecha)) {
-    const [d,m,y] = fecha.split("/");
-    fecha = y+"-"+m+"-"+d;
-  }
-  document.getElementById("e-fecha").value = fecha;
+  document.getElementById("e-fecha").value = fechaToInput(p["Fecha"]||"");
   document.getElementById("e-pago").value = p["Método de pago"]||"";
   document.getElementById("e-estado").value = p["Estado"]||"";
   const pagadoVal = p["Pagado"]||"No";
@@ -683,6 +693,7 @@ function cerrarModal() { document.getElementById("modal-editar").classList.remov
 async function actualizarPedido() {
   const items = getItemsFromContainer("e-items-container");
   const precioTotal = items.reduce((s,i)=>s+i.precioVenta,0);
+  // formatFecha converts yyyy-mm-dd (from input) to dd/mm/yyyy for storage
   const data = {
     "ID": document.getElementById("e-id").value,
     "Fecha": formatFecha(val("e-fecha",20)),
@@ -694,6 +705,7 @@ async function actualizarPedido() {
     "Notas": val("e-notas",300),
     items
   };
+  if (!data["Nombre cliente"]) { showToast("El nombre es obligatorio"); return; }
   const res = await apiCall({ action:"updatePedido", token:sessionToken, data:JSON.stringify(data) });
   if (res && res.ok) { showToast("Pedido actualizado ✓"); cerrarModal(); await cargarDatos(); }
 }
@@ -701,7 +713,19 @@ async function actualizarPedido() {
 async function marcarEntregado(id) {
   const p = pedidos.find(x=>x["ID"]===id);
   if (!p) return;
-  const data = { ...p, "Estado":"Entregado", items:p.items||[] };
+  // Build clean data object matching what updatePedido expects
+  const precioTotal = (p.items||[]).reduce((s,it)=>s+(parseFloat(it["Precio venta"])||0),0);
+  const data = {
+    "ID": p["ID"],
+    "Fecha": p["Fecha"],
+    "Nombre cliente": p["Nombre cliente"],
+    "Método de pago": p["Método de pago"],
+    "Estado": "Entregado",
+    "Pagado": p["Pagado"],
+    "Precio total": precioTotal > 0 ? precioTotal.toFixed(2) : (parseFloat(p["Precio total"])||0).toFixed(2),
+    "Notas": p["Notas"]||"",
+    items: p.items||[]
+  };
   const res = await apiCall({ action:"updatePedido", token:sessionToken, data:JSON.stringify(data) });
   if (res && res.ok) { showToast("Marcado como entregado ✓"); await cargarDatos(); }
 }
