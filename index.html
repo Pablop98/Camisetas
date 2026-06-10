@@ -62,10 +62,10 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 
 /* TABLA PEDIDOS */
 .table-wrap{background:var(--surface);border-radius:var(--radius-md);box-shadow:var(--shadow);overflow:hidden;margin-bottom:12px;}
-.table-header-row{display:grid;grid-template-columns:2.5fr 1.4fr 1fr 1fr 1fr 50px;padding:10px 14px;background:var(--bg);border-bottom:2px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
+.table-header-row{display:grid;grid-template-columns:2.5fr 1.4fr 1fr 1fr 1fr 1fr 50px;padding:10px 14px;background:var(--bg);border-bottom:2px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
 .table-row{border-bottom:1px solid var(--border);}
 .table-row:last-child{border-bottom:none;}
-.table-main{display:grid;grid-template-columns:2.5fr 1.4fr 1fr 1fr 1fr 50px;padding:12px 14px;align-items:center;cursor:pointer;transition:background .12s;}
+.table-main{display:grid;grid-template-columns:2.5fr 1.4fr 1fr 1fr 1fr 1fr 50px;padding:12px 14px;align-items:center;cursor:pointer;transition:background .12s;}
 .table-main:hover{background:#f8f9fa;}
 .pedido-nombre{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;text-transform:uppercase;}
 .table-cell{font-size:13px;}
@@ -255,6 +255,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
           <span>Pagado</span>
           <span>Precio</span>
           <span>Mi coste</span>
+          <span>Ganancia</span>
           <span></span>
         </div>
         <div id="pedidos-list"></div>
@@ -599,7 +600,13 @@ function renderPedidos() {
     const items = p._items||[];
     const precioBase = parseFloat(p.precio_total)||0;
     const precio = precioBase.toFixed(2);
-    const costeTotal = (p._items||[]).reduce((s,it)=>s+(parseFloat(it.lo_que_pago)||0),0);
+    const costeItemsRaw = (p._items||[]).reduce((s,it)=>s+(parseFloat(it.lo_que_pago)||0),0);
+    const numItems = (p._items||[]).length;
+    // For simple: add 5€ cambio moneda always + 5€ envio if <5 items
+    const feesCambio = tipo==="simple" ? 5 : 0;
+    const feesEnvio = (tipo==="simple" && numItems < 5) ? 5 : 0;
+    const costeTotal = costeItemsRaw + feesCambio + feesEnvio;
+    const ganancia = precioBase - costeTotal;
     const pagadoLoz = isPagado(p)?`<span class="loz loz-si">Sí</span>`:`<span class="loz loz-no">No</span>`;
     const tipoLoz = tipo==="conjunto"?`<span class="loz loz-tipo">Conjunto</span>`:`<span class="loz loz-simple">Simple</span>`;
     const sid = p.id.replace(/[^a-zA-Z0-9-_]/g,"_");
@@ -648,10 +655,12 @@ function renderPedidos() {
         <div class="table-cell tc-pagado">${pagadoLoz}</div>
         <div class="table-cell tc-precio"><strong>${precio} €</strong></div>
         <div class="table-cell tc-coste" style="font-size:12px;color:var(--muted);">${costeTotal.toFixed(2)} €</div>
+        <div class="table-cell tc-ganancia" style="font-size:12px;font-weight:600;color:${ganancia>=0?'var(--green)':'var(--red)'};">${ganancia>=0?'+':''}${ganancia.toFixed(2)} €</div>
         <div class="table-cell tc-toggle" style="text-align:center;"><button class="toggle-btn" onclick="toggleDetail('${p.id}','${sid}');event.stopPropagation()">＋</button></div>
       </div>
       <div class="table-detail" id="detail-${sid}">
-        '<div style="display:flex;justify-content:flex-end;padding:8px 0 4px;"><button class="btn-detail btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="togglePagoCol(this)">👁 Ocultar Pago</button></div>'        <table class="detail-table"><thead>${detailHead}</thead><tbody>${detailRows}</tbody></table>
+        <div style="display:flex;justify-content:flex-end;padding:8px 0 4px;"><button class="btn-detail btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="togglePagoCol(this)">👁 Ocultar Pago</button></div>        <table class="detail-table"><thead>${detailHead}</thead><tbody>${detailRows}</tbody></table>
+        ${tipo==="simple"?'<div style="font-size:11px;color:var(--muted);padding:6px 2px 2px;display:flex;gap:12px;">'+'<span>💱 Cambio moneda: +5.00 €</span>'+'<span>📦 Envío: '+(numItems<5?'+5.00 €':'0.00 € (5+ productos)')+'</span></div>':""}
         <div class="detail-actions" style="flex-wrap:wrap;gap:8px;">
           <button class="btn-detail btn-edit" onclick="abrirEditar('${p.id}')">✏️ Editar</button>
           <button class="btn-detail btn-add-product" onclick="toggleInlineAdd('${sid}')">＋ Producto</button>
