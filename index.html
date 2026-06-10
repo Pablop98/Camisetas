@@ -96,6 +96,11 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 .tracking-num::after{content:" 📋";font-size:10px;}
 .btn-tracking{background:transparent;border-color:var(--border);color:var(--muted);font-size:12px;}
 .btn-tracking:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
+/* Inline add product panel */
+.inline-add-panel{display:none;background:var(--accent-bg);border:2px dashed var(--accent);border-radius:var(--radius-md);padding:14px;margin-top:10px;}
+.inline-add-panel.open{display:block;}
+.inline-add-panel .form-card{box-shadow:none;background:transparent;padding:0;margin:0;}
+.loz-simple{background:#e0e7ff;color:#3730a3;font-size:10px;}
 .tracking-input-wrap{display:none;align-items:center;gap:6px;margin-left:auto;}
 .tracking-input-wrap.open{display:flex;}
 .tracking-input-wrap input{padding:5px 8px;border:2px solid var(--accent);border-radius:var(--radius);font-size:13px;width:200px;font-family:monospace;}
@@ -378,21 +383,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 
 <div class="toast" id="toast"></div>
 
-<!-- MODAL AÑADIR PRODUCTO RÁPIDO -->
-<div class="modal-backdrop" id="modal-addproducto">
-  <div class="modal">
-    <h2 id="ap-titulo">Añadir producto</h2>
-    <input type="hidden" id="ap-pedido-id">
-    <input type="hidden" id="ap-tipo">
-    <div id="ap-container"></div>
-    <button class="add-item-btn" onclick="addItemBlock('ap-container','ap-precio-display',document.getElementById('ap-tipo').value)">＋ Otro producto</button>
-    <div style="font-size:13px;color:var(--muted);margin:8px 0 4px;">Total a añadir: <strong id="ap-precio-display">0.00 €</strong></div>
-    <div class="btn-row" style="margin-top:12px;">
-      <button class="btn btn-primary" onclick="guardarAddProducto()">Guardar</button>
-      <button class="btn btn-secondary" onclick="document.getElementById('modal-addproducto').classList.remove('open')">Cancelar</button>
-    </div>
-  </div>
-</div>
+<!-- inline add product panel replaces the modal -->
 
 <script>
 const SUPABASE_URL = "https://fhaymwuapdcvlqwfhnps.supabase.co";
@@ -536,7 +527,18 @@ function addItemBlock(containerId, priceDisplayId, tipo) {
 
 function recalcTotal(displayId, containerId) {
   let total = 0;
-  document.getElementById(containerId).querySelectorAll(".i-precio").forEach(inp=>{total+=parseFloat(inp.value)||0;});
+  const cont = document.getElementById(containerId);
+  if (!cont) return;
+  cont.querySelectorAll(".i-precio").forEach(inp=>{total+=parseFloat(inp.value)||0;});
+  // For simple type: add 5€ cambio moneda always + 5€ envio if <5 products
+  const isSimpleContainer = containerId==="items-container" || containerId==="e-items-container";
+  const isSimple = isSimpleContainer && tipoActual==="simple" ||
+                   containerId==="e-items-container" && (document.getElementById("e-tipo")?.value||"simple")==="simple";
+  if (isSimple) {
+    const numItems = cont.querySelectorAll(".item-block").length;
+    total += 5; // cambio moneda
+    if (numItems < 5) total += 5; // gastos de envio
+  }
   document.getElementById(displayId).textContent = total.toFixed(2)+" €";
 }
 
@@ -587,7 +589,7 @@ function renderPedidos() {
     const items = p._items||[];
     const precio = (parseFloat(p.precio_total)||0).toFixed(2);
     const pagadoLoz = isPagado(p)?`<span class="loz loz-si">Sí</span>`:`<span class="loz loz-no">No</span>`;
-    const tipoLoz = tipo==="conjunto"?`<span class="loz loz-tipo">Conjunto</span>`:``;
+    const tipoLoz = tipo==="conjunto"?`<span class="loz loz-tipo">Conjunto</span>`:`<span class="loz loz-simple">Simple</span>`;
     const sid = p.id.replace(/[^a-zA-Z0-9-_]/g,"_");
 
     // Detail table según tipo
@@ -622,7 +624,7 @@ function renderPedidos() {
       </tr>`).join("")||`<tr><td colspan="6" style="color:var(--muted);text-align:center;">Sin productos</td></tr>`;
     }
 
-    return `<div class="table-row" id="row-${sid}">
+    return `<div class="table-row" id="row-${sid}" data-tipo="${tipo}">
       <div class="table-main" onclick="toggleDetail('${p.id}','${sid}')">
         <div>
           <div class="pedido-nombre">${san(p.nombre_cliente||"Sin nombre")} ${tipoLoz}</div>
@@ -637,7 +639,7 @@ function renderPedidos() {
         <table class="detail-table"><thead>${detailHead}</thead><tbody>${detailRows}</tbody></table>
         <div class="detail-actions" style="flex-wrap:wrap;gap:8px;">
           <button class="btn-detail btn-edit" onclick="abrirEditar('${p.id}')">✏️ Editar</button>
-          <button class="btn-detail btn-add-product" onclick="abrirAddProducto('${p.id}')">＋ Producto</button>
+          <button class="btn-detail btn-add-product" onclick="toggleInlineAdd('${sid}')">＋ Producto</button>
           <button class="btn-detail btn-entregado" onclick="marcarEntregado('${p.id}')">✓ Entregado</button>
           <button class="btn-detail btn-del" onclick="eliminarPedido('${p.id}')">🗑 Borrar</button>
           <div class="tracking-area">
@@ -648,6 +650,16 @@ function renderPedidos() {
               <button class="btn-cancel-tracking" onclick="cancelarTracking('${sid}')">✕</button>
             </div>
             <button class="btn-detail btn-tracking" onclick="abrirTracking('${sid}')">📦 Nº Seguimiento</button>
+          </div>
+        </div>
+        <div class="inline-add-panel" id="iap-${sid}">
+          <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">Añadir producto</div>
+          <div id="iap-container-${sid}"></div>
+          <button class="add-item-btn" onclick="addItemBlock('iap-container-${sid}','iap-precio-${sid}','${tipo}');recalcInlineAdd('${sid}')">＋ Otro producto</button>
+          <div style="font-size:13px;color:var(--muted);margin:8px 0 4px;">Total a añadir: <strong id="iap-precio-${sid}">0.00 €</strong></div>
+          <div class="btn-row" style="margin-top:10px;">
+            <button class="btn btn-primary" style="padding:7px 16px;font-size:13px;" onclick="guardarInlineAdd('${p.id}','${sid}')">Guardar</button>
+            <button class="btn btn-secondary" style="padding:7px 16px;font-size:13px;" onclick="toggleInlineAdd('${sid}')">Cancelar</button>
           </div>
         </div>
       </div>
@@ -800,35 +812,50 @@ async function saveItemOrder(tbody) {
   } catch(e) { console.error("Error saving order:", e); }
 }
 
-// Modal para añadir producto rápido sin entrar en editar completo
-function abrirAddProducto(pedidoId) {
-  const p = pedidos.find(x=>x.id===pedidoId);
-  if (!p) return;
-  const tipo = p.tipo||"simple";
-  document.getElementById("ap-pedido-id").value = pedidoId;
-  document.getElementById("ap-tipo").value = tipo;
-  document.getElementById("ap-titulo").textContent = "Añadir producto — "+san(p.nombre_cliente||"");
-  const cont = document.getElementById("ap-container");
-  cont.innerHTML="";
-  addItemBlock("ap-container","ap-precio-display", tipo);
-  document.getElementById("modal-addproducto").classList.add("open");
+function toggleInlineAdd(sid) {
+  const panel = document.getElementById("iap-"+sid);
+  if (!panel) return;
+  const isOpen = panel.classList.toggle("open");
+  if (isOpen) {
+    const cont = document.getElementById("iap-container-"+sid);
+    if (cont && cont.children.length === 0) {
+      // Find the tipo for this pedido from the panel's context
+      const row = panel.closest(".table-row");
+      const tipo = row?.dataset.tipo || "simple";
+      addItemBlock("iap-container-"+sid, "iap-precio-"+sid, tipo);
+    }
+  }
 }
 
-async function guardarAddProducto() {
-  const pedidoId = document.getElementById("ap-pedido-id").value;
-  const items = getItemsFromContainer("ap-container");
+function recalcInlineAdd(sid) {
+  let total = 0;
+  const cont = document.getElementById("iap-container-"+sid);
+  if (cont) cont.querySelectorAll(".i-precio").forEach(inp=>{total+=parseFloat(inp.value)||0;});
+  const disp = document.getElementById("iap-precio-"+sid);
+  if (disp) disp.textContent = total.toFixed(2)+" €";
+}
+
+async function guardarInlineAdd(pedidoId, sid) {
+  const items = getItemsFromContainer("iap-container-"+sid);
   if (!items.length) { showToast("Añade al menos un producto"); return; }
   try {
     await sbPost("items", items.map(it=>({...it, pedido_id: pedidoId})));
-    // Recalc precio total
     const p = pedidos.find(x=>x.id===pedidoId);
     if (p) {
-      const nuevoTotal = ((p._items||[]).reduce((s,i)=>s+(parseFloat(i.precio_venta)||0),0)) +
-                         items.reduce((s,i)=>s+i.precio_venta,0);
+      const tipo = p.tipo||"simple";
+      const itemsActuales = p._items||[];
+      const totalItems = itemsActuales.length + items.length;
+      const baseItems = itemsActuales.reduce((s,i)=>s+(parseFloat(i.precio_venta)||0),0);
+      const newItems = items.reduce((s,i)=>s+i.precio_venta,0);
+      let nuevoTotal = baseItems + newItems;
+      if (tipo==="simple") {
+        nuevoTotal += 5; // cambio moneda
+        if (totalItems < 5) nuevoTotal += 5; // envio si menos de 5 productos
+      }
       await sbPatch("pedidos", `id=eq.${encodeURIComponent(pedidoId)}`, { precio_total: nuevoTotal });
     }
     showToast("Producto añadido ✓");
-    document.getElementById("modal-addproducto").classList.remove("open");
+    toggleInlineAdd(sid);
     await cargarDatos();
   } catch(e) { showToast("Error: "+e.message); }
 }
@@ -838,7 +865,11 @@ async function guardarPedido() {
   const nombre = v("f-nombre",100);
   if (!nombre){showToast("El nombre es obligatorio");return;}
   const items = getItemsFromContainer("items-container");
-  const precioTotal = items.reduce((s,i)=>s+i.precio_venta,0);
+  let precioTotal = items.reduce((s,i)=>s+i.precio_venta,0);
+  if (tipoActual==="simple") {
+    precioTotal += 5; // cambio moneda
+    if (items.length < 5) precioTotal += 5; // gastos de envio
+  }
   const id = "PED-"+Date.now();
   try {
     await sbPost("pedidos",[{
