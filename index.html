@@ -613,15 +613,16 @@ function renderPedidos() {
         <td><button class="pagado-toggle ${eItem?'si':'no'}" onclick="toggleEntregadoItem('${p.id}','${it.id}',this)">${eItem?'Sí':'No'}</button></td>
       </tr>`;}).join("")||`<tr><td colspan="10" style="color:var(--muted);text-align:center;">Sin productos</td></tr>`;
     } else {
-      detailHead = `<tr><th>Item</th><th>Versión</th><th>Talla</th><th>Nombre/Nº</th><th>Parche</th><th>Precio</th></tr>`;
-      detailRows = items.map(it=>`<tr>
+      detailHead = `<tr><th></th><th>Item</th><th>Versión</th><th>Talla</th><th>Nombre/Nº</th><th>Parche</th><th>Precio</th></tr>`;
+      detailRows = items.map(it=>`<tr data-item-id="${it.id}" data-pedido-id="${p.id}">
+        <td class="drag-handle" title="Mantén pulsado para mover">⠿</td>
         <td>${san(it.item||"—")}</td>
         <td>${san(it.version||"—")}</td>
         <td>${san(it.talla||"—")}</td>
         <td>${san(it.nombre_numero||"—")}</td>
         <td>${san(it.parche||"—")}</td>
         <td><strong>${(parseFloat(it.precio_venta)||0).toFixed(2)} €</strong></td>
-      </tr>`).join("")||`<tr><td colspan="6" style="color:var(--muted);text-align:center;">Sin productos</td></tr>`;
+      </tr>`).join("")||`<tr><td colspan="7" style="color:var(--muted);text-align:center;">Sin productos</td></tr>`;
     }
 
     return `<div class="table-row" id="row-${sid}" data-tipo="${tipo}">
