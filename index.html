@@ -90,6 +90,13 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 .pagado-toggle:hover{opacity:.75;}
 .btn-add-product{background:transparent;border-color:var(--accent);color:var(--accent);}
 .btn-add-product:hover{background:var(--accent-bg);}
+/* Entregado row highlight */
+.detail-table tr.entregado-row td{background:#e3fcef !important;}
+/* Drag handle */
+.drag-handle{cursor:grab;color:var(--muted);font-size:16px;padding:0 6px;user-select:none;touch-action:none;}
+.drag-handle:active{cursor:grabbing;}
+.detail-table tr.dragging{opacity:.4;background:#deebff !important;}
+.detail-table tr.drag-over td{border-top:2px solid var(--accent) !important;}
 
 /* TIPO SELECTOR */
 .tipo-selector{display:flex;gap:10px;margin-bottom:16px;}
@@ -433,7 +440,7 @@ async function sbDelete(t,q){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?$
 async function cargarDatos() {
   document.getElementById("conn-status").textContent="⏳ Cargando...";
   try {
-    const [peds,its] = await Promise.all([sbGet("pedidos","order=created_at.desc"),sbGet("items","order=created_at.asc")]);
+    const [peds,its] = await Promise.all([sbGet("pedidos","order=created_at.desc"),sbGet("items","order=posicion.asc,created_at.asc")]);
     pedidos=peds; allItems=its;
     pedidos.forEach(p=>{p._items=allItems.filter(i=>i.pedido_id===p.id);});
     document.getElementById("conn-status").textContent="✅ "+pedidos.length+" pedidos";
@@ -574,10 +581,13 @@ function renderPedidos() {
     // Detail table según tipo
     let detailHead, detailRows;
     if (tipo==="conjunto") {
-      detailHead = `<tr><th>Persona</th><th>Item</th><th>Versión</th><th>Talla</th><th>Nombre/Nº</th><th>Precio</th><th>Pago</th><th>Pagado</th></tr>`;
-      detailRows = items.map(it=>{
+      detailHead = `<tr><th></th><th>Persona</th><th>Item</th><th>Versión</th><th>Talla</th><th>Nombre/Nº</th><th>Precio</th><th>Pago</th><th>Pagado</th><th>Entregado</th></tr>`;
+      detailRows = items.map((it,idx)=>{
         const pItem = it.pagado_item==="Si"||it.pagado_item==="Sí";
-        return `<tr>
+        const eItem = it.entregado_item==="Si"||it.entregado_item==="Sí";
+        const rowClass = eItem ? "entregado-row" : "";
+        return `<tr class="${rowClass}" data-item-id="${it.id}" data-pedido-id="${p.id}">
+        <td class="drag-handle" title="Mantén pulsado para mover">⠿</td>
         <td>${san(it.nombre_persona||"—")}</td>
         <td>${san(it.item||"—")}</td>
         <td>${san(it.version||"—")}</td>
@@ -586,7 +596,8 @@ function renderPedidos() {
         <td><strong>${(parseFloat(it.precio_venta)||0).toFixed(2)} €</strong></td>
         <td>${(parseFloat(it.lo_que_pago)||0).toFixed(2)} €</td>
         <td><button class="pagado-toggle ${pItem?'si':'no'}" onclick="togglePagadoItem('${p.id}','${it.id}',this)">${pItem?'Sí':'No'}</button></td>
-      </tr>`;}).join("")||`<tr><td colspan="8" style="color:var(--muted);text-align:center;">Sin productos</td></tr>`;
+        <td><button class="pagado-toggle ${eItem?'si':'no'}" onclick="toggleEntregadoItem('${p.id}','${it.id}',this)">${eItem?'Sí':'No'}</button></td>
+      </tr>`;}).join("")||`<tr><td colspan="10" style="color:var(--muted);text-align:center;">Sin productos</td></tr>`;
     } else {
       detailHead = `<tr><th>Item</th><th>Versión</th><th>Talla</th><th>Nombre/Nº</th><th>Parche</th><th>Precio</th></tr>`;
       detailRows = items.map(it=>`<tr>
@@ -629,6 +640,11 @@ function toggleDetail(id, sid) {
   if (!detail) return;
   const isOpen = detail.classList.toggle("open");
   if (btn) btn.textContent = isOpen?"−":"＋";
+  if (isOpen) {
+    // Init drag & drop on the tbody of this detail
+    const tbody = detail.querySelector("tbody");
+    if (tbody) initDragDrop(tbody);
+  }
 }
 
 async function togglePagadoItem(pedidoId, itemId, btn) {
@@ -639,11 +655,128 @@ async function togglePagadoItem(pedidoId, itemId, btn) {
     btn.classList.toggle("si", isNowSi);
     btn.classList.toggle("no", !isNowSi);
     btn.textContent = isNowSi ? "Sí" : "No";
-    // Update local data
     const p = pedidos.find(x=>x.id===pedidoId);
     if (p) { const it = (p._items||[]).find(x=>x.id===itemId); if(it) it.pagado_item = newVal; }
     showToast(isNowSi ? "Marcado como pagado ✓" : "Marcado como no pagado");
+    renderResumen();
   } catch(e) { showToast("Error: "+e.message); }
+}
+
+async function toggleEntregadoItem(pedidoId, itemId, btn) {
+  const isNowSi = btn.classList.contains("no");
+  const newVal = isNowSi ? "Si" : "No";
+  try {
+    await sbPatch("items", `id=eq.${encodeURIComponent(itemId)}`, { entregado_item: newVal });
+    btn.classList.toggle("si", isNowSi);
+    btn.classList.toggle("no", !isNowSi);
+    btn.textContent = isNowSi ? "Sí" : "No";
+    // Update local data
+    const p = pedidos.find(x=>x.id===pedidoId);
+    if (p) { const it = (p._items||[]).find(x=>x.id===itemId); if(it) it.entregado_item = newVal; }
+    // Toggle green row bg
+    const row = btn.closest("tr");
+    if (row) row.classList.toggle("entregado-row", isNowSi);
+    showToast(isNowSi ? "Marcado como entregado ✓" : "Marcado como no entregado");
+  } catch(e) { showToast("Error: "+e.message); }
+}
+
+// ── DRAG & DROP para reordenar items ────────────────────────
+let dragSrcRow = null;
+
+function initDragDrop(tbody) {
+  if (!tbody) return;
+  tbody.querySelectorAll("tr[data-item-id]").forEach(row => {
+    const handle = row.querySelector(".drag-handle");
+    if (!handle) return;
+
+    // Desktop drag
+    row.setAttribute("draggable", "true");
+    row.addEventListener("dragstart", e => {
+      dragSrcRow = row;
+      row.classList.add("dragging");
+      e.dataTransfer.effectAllowed = "move";
+    });
+    row.addEventListener("dragend", () => {
+      row.classList.remove("dragging");
+      tbody.querySelectorAll("tr").forEach(r => r.classList.remove("drag-over"));
+    });
+    row.addEventListener("dragover", e => {
+      e.preventDefault();
+      tbody.querySelectorAll("tr").forEach(r => r.classList.remove("drag-over"));
+      if (row !== dragSrcRow) row.classList.add("drag-over");
+    });
+    row.addEventListener("drop", e => {
+      e.preventDefault();
+      if (dragSrcRow && dragSrcRow !== row) {
+        const rows = [...tbody.querySelectorAll("tr[data-item-id]")];
+        const srcIdx = rows.indexOf(dragSrcRow);
+        const tgtIdx = rows.indexOf(row);
+        if (srcIdx < tgtIdx) tbody.insertBefore(dragSrcRow, row.nextSibling);
+        else tbody.insertBefore(dragSrcRow, row);
+        row.classList.remove("drag-over");
+        saveItemOrder(tbody);
+      }
+    });
+
+    // Touch / long press
+    let longPressTimer = null;
+    let touchStartY = 0;
+    handle.addEventListener("touchstart", e => {
+      touchStartY = e.touches[0].clientY;
+      longPressTimer = setTimeout(() => {
+        dragSrcRow = row;
+        row.classList.add("dragging");
+        showToast("Arrastra para reordenar");
+      }, 400);
+    }, {passive:true});
+    handle.addEventListener("touchmove", e => {
+      if (!dragSrcRow) return;
+      e.preventDefault();
+      const touch = e.touches[0];
+      const el = document.elementFromPoint(touch.clientX, touch.clientY);
+      const targetRow = el?.closest("tr[data-item-id]");
+      tbody.querySelectorAll("tr").forEach(r => r.classList.remove("drag-over"));
+      if (targetRow && targetRow !== dragSrcRow) targetRow.classList.add("drag-over");
+    }, {passive:false});
+    handle.addEventListener("touchend", e => {
+      clearTimeout(longPressTimer);
+      if (!dragSrcRow) return;
+      dragSrcRow.classList.remove("dragging");
+      const overRow = tbody.querySelector("tr.drag-over");
+      if (overRow) {
+        const rows = [...tbody.querySelectorAll("tr[data-item-id]")];
+        const srcIdx = rows.indexOf(dragSrcRow);
+        const tgtIdx = rows.indexOf(overRow);
+        if (srcIdx < tgtIdx) tbody.insertBefore(dragSrcRow, overRow.nextSibling);
+        else tbody.insertBefore(dragSrcRow, overRow);
+        overRow.classList.remove("drag-over");
+        saveItemOrder(tbody);
+      }
+      dragSrcRow = null;
+    });
+    handle.addEventListener("touchcancel", () => {
+      clearTimeout(longPressTimer);
+      if (dragSrcRow) dragSrcRow.classList.remove("dragging");
+      dragSrcRow = null;
+    });
+  });
+}
+
+async function saveItemOrder(tbody) {
+  const rows = [...tbody.querySelectorAll("tr[data-item-id]")];
+  const pedidoId = rows[0]?.dataset.pedidoId;
+  if (!pedidoId) return;
+  try {
+    await Promise.all(rows.map((r, i) =>
+      sbPatch("items", `id=eq.${encodeURIComponent(r.dataset.itemId)}`, { posicion: i })
+    ));
+    // Update local data order
+    const p = pedidos.find(x=>x.id===pedidoId);
+    if (p) {
+      const newOrder = rows.map(r => (p._items||[]).find(it=>it.id===r.dataset.itemId)).filter(Boolean);
+      p._items = newOrder;
+    }
+  } catch(e) { console.error("Error saving order:", e); }
 }
 
 // Modal para añadir producto rápido sin entrar en editar completo
