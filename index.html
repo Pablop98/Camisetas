@@ -109,6 +109,8 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 .btn-cancel-tracking{background:var(--bg);color:var(--muted);}
 /* Entregado row highlight */
 .detail-table tr.entregado-row td{background:#e3fcef !important;}
+/* Hide pago column */
+.hide-pago .col-pago{display:none;}
 /* Drag handle */
 .drag-handle{cursor:grab;color:var(--muted);font-size:16px;padding:0 6px;user-select:none;touch-action:none;}
 .drag-handle:active{cursor:grabbing;}
@@ -595,7 +597,7 @@ function renderPedidos() {
     // Detail table según tipo
     let detailHead, detailRows;
     if (tipo==="conjunto") {
-      detailHead = `<tr><th></th><th>Persona</th><th>Item</th><th>Versión</th><th>Talla</th><th>Nombre/Nº</th><th>Precio</th><th>Pago</th><th>Pagado</th><th>Entregado</th></tr>`;
+      detailHead = `<tr><th></th><th>Persona</th><th>Item</th><th>Versión</th><th>Talla</th><th>Nombre/Nº</th><th>Precio</th><th class="col-pago">Pago</th><th>Pagado</th><th>Entregado</th></tr>`;
       detailRows = items.map((it,idx)=>{
         const pItem = it.pagado_item==="Si"||it.pagado_item==="Sí";
         const eItem = it.entregado_item==="Si"||it.entregado_item==="Sí";
@@ -608,7 +610,7 @@ function renderPedidos() {
         <td>${san(it.talla||"—")}</td>
         <td>${san(it.nombre_numero||"—")}</td>
         <td><strong>${(parseFloat(it.precio_venta)||0).toFixed(2)} €</strong></td>
-        <td>${(parseFloat(it.lo_que_pago)||0).toFixed(2)} €</td>
+        <td class="col-pago">${(parseFloat(it.lo_que_pago)||0).toFixed(2)} €</td>
         <td><button class="pagado-toggle ${pItem?'si':'no'}" onclick="togglePagadoItem('${p.id}','${it.id}',this)">${pItem?'Sí':'No'}</button></td>
         <td><button class="pagado-toggle ${eItem?'si':'no'}" onclick="toggleEntregadoItem('${p.id}','${it.id}',this)">${eItem?'Sí':'No'}</button></td>
       </tr>`;}).join("")||`<tr><td colspan="10" style="color:var(--muted);text-align:center;">Sin productos</td></tr>`;
@@ -637,7 +639,7 @@ function renderPedidos() {
         <div class="table-cell tc-toggle" style="text-align:center;"><button class="toggle-btn" onclick="toggleDetail('${p.id}','${sid}');event.stopPropagation()">＋</button></div>
       </div>
       <div class="table-detail" id="detail-${sid}">
-        <table class="detail-table"><thead>${detailHead}</thead><tbody>${detailRows}</tbody></table>
+        ${tipo==="conjunto"?`<div style="display:flex;justify-content:flex-end;padding:8px 0 4px;"><button class="btn-detail btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="togglePagoCol(this)">👁 Ocultar Pago</button></div>`:""}        <table class="detail-table" id="dt-${sid}"><thead>${detailHead}</thead><tbody>${detailRows}</tbody></table>
         <div class="detail-actions" style="flex-wrap:wrap;gap:8px;">
           <button class="btn-detail btn-edit" onclick="abrirEditar('${p.id}')">✏️ Editar</button>
           <button class="btn-detail btn-add-product" onclick="toggleInlineAdd('${sid}')">＋ Producto</button>
@@ -840,7 +842,9 @@ async function guardarInlineAdd(pedidoId, sid) {
   const items = getItemsFromContainer("iap-container-"+sid);
   if (!items.length) { showToast("Añade al menos un producto"); return; }
   try {
-    await sbPost("items", items.map(it=>({...it, pedido_id: pedidoId})));
+    const p = pedidos.find(x=>x.id===pedidoId);
+    const maxPos = (p?._items||[]).reduce((m,it)=>Math.max(m, parseInt(it.posicion)||0), 0);
+    await sbPost("items", items.map((it,i)=>({...it, pedido_id: pedidoId, posicion: maxPos+1+i})));
     const p = pedidos.find(x=>x.id===pedidoId);
     if (p) {
       const tipo = p.tipo||"simple";
@@ -883,7 +887,7 @@ async function guardarPedido() {
       pagado: v("f-pagado",5)||"No",
       notas: v("f-notas",300)
     }]);
-    if (items.length>0) await sbPost("items",items.map(it=>({...it,pedido_id:id})));
+    if (items.length>0) await sbPost("items",items.map((it,i)=>({...it,pedido_id:id,posicion:i})));
     showToast("Pedido guardado ✓");
     limpiarNuevo();
     await cargarDatos();
@@ -982,7 +986,7 @@ async function actualizarPedido() {
       precio_total:precioTotal, notas:v("e-notas",300)
     });
     await sbDelete("items",`pedido_id=eq.${encodeURIComponent(id)}`);
-    if (items.length>0) await sbPost("items",items.map(it=>({...it,pedido_id:id})));
+    if (items.length>0) await sbPost("items",items.map((it,i)=>({...it,pedido_id:id,posicion:i})));
     showToast("Pedido actualizado ✓");
     cerrarModal();
     await cargarDatos();
@@ -1064,6 +1068,13 @@ function showSection(id,btn) {
   document.getElementById("s-"+id).classList.add("visible");
   if(btn)btn.classList.add("active");
   if(id==="resumen")renderResumen();
+}
+
+function togglePagoCol(btn) {
+  const table = btn.closest(".table-detail").querySelector(".detail-table");
+  if (!table) return;
+  const hidden = table.classList.toggle("hide-pago");
+  btn.textContent = hidden ? "👁 Mostrar Pago" : "👁 Ocultar Pago";
 }
 
 function showToast(msg) {
