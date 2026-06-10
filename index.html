@@ -90,6 +90,18 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 .pagado-toggle:hover{opacity:.75;}
 .btn-add-product{background:transparent;border-color:var(--accent);color:var(--accent);}
 .btn-add-product:hover{background:var(--accent-bg);}
+.tracking-area{display:flex;align-items:center;gap:8px;margin-left:auto;}
+.tracking-num{font-size:12px;font-weight:700;color:var(--accent);background:var(--accent-bg);padding:4px 10px;border-radius:3px;cursor:pointer;letter-spacing:.5px;transition:background .12s;}
+.tracking-num:hover{background:#c0d8ff;}
+.tracking-num::after{content:" 📋";font-size:10px;}
+.btn-tracking{background:transparent;border-color:var(--border);color:var(--muted);font-size:12px;}
+.btn-tracking:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-bg);}
+.tracking-input-wrap{display:none;align-items:center;gap:6px;margin-left:auto;}
+.tracking-input-wrap.open{display:flex;}
+.tracking-input-wrap input{padding:5px 8px;border:2px solid var(--accent);border-radius:var(--radius);font-size:13px;width:200px;font-family:monospace;}
+.tracking-input-wrap button{padding:5px 10px;border-radius:var(--radius);font-size:12px;font-weight:600;cursor:pointer;border:none;}
+.btn-save-tracking{background:var(--accent);color:#fff;}
+.btn-cancel-tracking{background:var(--bg);color:var(--muted);}
 /* Entregado row highlight */
 .detail-table tr.entregado-row td{background:#e3fcef !important;}
 /* Drag handle */
@@ -278,7 +290,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
           <div class="fg"><label>Precio total</label>
             <div class="precio-display" id="precio-total-display">0.00 €</div>
           </div>
-          <div class="fg full"><label>Notas (opcional)</label><textarea id="f-notas" maxlength="300"></textarea></div>
+          <div class="fg full"><label>Número de seguimiento (opcional)</label><textarea id="f-notas" maxlength="300" placeholder="Ej. ES123456789CN" rows="2"></textarea></div>
         </div>
       </div>
 
@@ -350,7 +362,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
       <div class="fg"><label>Precio total</label>
         <div class="precio-display" id="e-precio-display">0.00 €</div>
       </div>
-      <div class="fg full"><label>Notas</label><textarea id="e-notas" maxlength="300"></textarea></div>
+      <div class="fg full"><label>Número de seguimiento</label><textarea id="e-notas" maxlength="300" placeholder="Ej. ES123456789CN" rows="2"></textarea></div>
     </div>
     <div class="form-card" style="margin-bottom:14px;padding:14px;">
       <h3 style="margin-bottom:10px;">Productos</h3>
@@ -623,11 +635,20 @@ function renderPedidos() {
       </div>
       <div class="table-detail" id="detail-${sid}">
         <table class="detail-table"><thead>${detailHead}</thead><tbody>${detailRows}</tbody></table>
-        <div class="detail-actions">
+        <div class="detail-actions" style="flex-wrap:wrap;gap:8px;">
           <button class="btn-detail btn-edit" onclick="abrirEditar('${p.id}')">✏️ Editar</button>
           <button class="btn-detail btn-add-product" onclick="abrirAddProducto('${p.id}')">＋ Producto</button>
           <button class="btn-detail btn-entregado" onclick="marcarEntregado('${p.id}')">✓ Entregado</button>
           <button class="btn-detail btn-del" onclick="eliminarPedido('${p.id}')">🗑 Borrar</button>
+          <div class="tracking-area">
+            ${p.notas ? `<span class="tracking-num" onclick="copiarTracking('${san(p.notas)}',event)" title="Click para copiar">${san(p.notas)}</span>` : ''}
+            <div class="tracking-input-wrap" id="ti-${sid}">
+              <input type="text" id="ti-input-${sid}" placeholder="Nº seguimiento" maxlength="60">
+              <button class="btn-save-tracking" onclick="guardarTracking('${p.id}','${sid}')">✓</button>
+              <button class="btn-cancel-tracking" onclick="cancelarTracking('${sid}')">✕</button>
+            </div>
+            <button class="btn-detail btn-tracking" onclick="abrirTracking('${sid}')">📦 Nº Seguimiento</button>
+          </div>
         </div>
       </div>
     </div>`;
@@ -1017,6 +1038,47 @@ function showToast(msg) {
   const t=document.getElementById("toast");
   t.textContent=msg;t.classList.add("show");
   setTimeout(()=>t.classList.remove("show"),2500);
+}
+
+function abrirTracking(sid) {
+  const wrap = document.getElementById("ti-"+sid);
+  if (!wrap) return;
+  wrap.classList.add("open");
+  const inp = document.getElementById("ti-input-"+sid);
+  if (inp) { inp.focus(); inp.select(); }
+}
+
+function cancelarTracking(sid) {
+  const wrap = document.getElementById("ti-"+sid);
+  if (wrap) wrap.classList.remove("open");
+}
+
+async function guardarTracking(pedidoId, sid) {
+  const inp = document.getElementById("ti-input-"+sid);
+  const val = (inp?.value||"").trim();
+  try {
+    await sbPatch("pedidos", `id=eq.${encodeURIComponent(pedidoId)}`, { notas: val });
+    const p = pedidos.find(x=>x.id===pedidoId);
+    if (p) p.notas = val;
+    showToast(val ? "Nº seguimiento guardado ✓" : "Nº seguimiento eliminado");
+    cancelarTracking(sid);
+    await cargarDatos();
+  } catch(e) { showToast("Error: "+e.message); }
+}
+
+function copiarTracking(texto, e) {
+  e.stopPropagation();
+  navigator.clipboard.writeText(texto).then(()=>{
+    showToast("Copiado: "+texto);
+  }).catch(()=>{
+    // Fallback
+    const ta = document.createElement("textarea");
+    ta.value = texto; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    showToast("Copiado: "+texto);
+  });
 }
 
 document.getElementById("f-fecha").value=localDateStr();
