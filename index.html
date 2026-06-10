@@ -639,7 +639,7 @@ function renderPedidos() {
         <div class="table-cell tc-toggle" style="text-align:center;"><button class="toggle-btn" onclick="toggleDetail('${p.id}','${sid}');event.stopPropagation()">＋</button></div>
       </div>
       <div class="table-detail" id="detail-${sid}">
-        ${tipo==="conjunto"?`<div style="display:flex;justify-content:flex-end;padding:8px 0 4px;"><button class="btn-detail btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="togglePagoCol(this)">👁 Ocultar Pago</button></div>`:""}        <table class="detail-table" id="dt-${sid}"><thead>${detailHead}</thead><tbody>${detailRows}</tbody></table>
+        ${tipo==="conjunto"?'<div style="display:flex;justify-content:flex-end;padding:8px 0 4px;"><button class="btn-detail btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="togglePagoCol(this)">👁 Ocultar Pago</button></div>':""}        <table class="detail-table"><thead>${detailHead}</thead><tbody>${detailRows}</tbody></table>
         <div class="detail-actions" style="flex-wrap:wrap;gap:8px;">
           <button class="btn-detail btn-edit" onclick="abrirEditar('${p.id}')">✏️ Editar</button>
           <button class="btn-detail btn-add-product" onclick="toggleInlineAdd('${sid}')">＋ Producto</button>
