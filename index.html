@@ -67,13 +67,13 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 .table-row:last-child{border-bottom:none;}
 .table-main{display:grid;grid-template-columns:2.5fr 1.4fr 1fr 1fr 50px;padding:12px 14px;align-items:center;cursor:pointer;transition:background .12s;}
 .table-main:hover{background:#f8f9fa;}
-.pedido-nombre{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;}
+.pedido-nombre{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;text-transform:uppercase;}
 .table-cell{font-size:13px;}
 .table-detail{display:none;padding:0 14px 14px;border-top:1px solid var(--border);background:#fafbfc;}
 .table-detail.open{display:block;}
 .detail-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}
 .detail-table th{background:var(--bg);padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:2px solid var(--border);}
-.detail-table td{padding:8px 10px;border-bottom:1px solid var(--border);}
+.detail-table td{padding:8px 10px;border-bottom:1px solid var(--border);text-transform:uppercase;}
 .detail-table tr:last-child td{border-bottom:none;}
 .detail-actions{display:flex;gap:8px;margin-top:12px;}
 .btn-detail{padding:6px 14px;border-radius:var(--radius);font-size:13px;font-weight:500;cursor:pointer;border:2px solid transparent;transition:all .12s;}
@@ -433,7 +433,7 @@ async function sbDelete(t,q){const r=await fetch(`${SUPABASE_URL}/rest/v1/${t}?$
 async function cargarDatos() {
   document.getElementById("conn-status").textContent="⏳ Cargando...";
   try {
-    const [peds,its] = await Promise.all([sbGet("pedidos","order=created_at.desc"),sbGet("items","order=id.asc")]);
+    const [peds,its] = await Promise.all([sbGet("pedidos","order=created_at.desc"),sbGet("items","order=created_at.asc")]);
     pedidos=peds; allItems=its;
     pedidos.forEach(p=>{p._items=allItems.filter(i=>i.pedido_id===p.id);});
     document.getElementById("conn-status").textContent="✅ "+pedidos.length+" pedidos";
@@ -521,16 +521,17 @@ function recalcTotal(displayId, containerId) {
   document.getElementById(displayId).textContent = total.toFixed(2)+" €";
 }
 
+function uc(s){return (s||"").trim().toUpperCase();}
 function getItemsFromContainer(containerId) {
   const items = [];
   document.getElementById(containerId).querySelectorAll(".item-block").forEach(block=>{
     items.push({
-      nombre_persona: block.querySelector(".i-persona")?.value.trim().slice(0,80)||"",
-      item: block.querySelector(".i-item")?.value.trim().slice(0,100)||"",
+      nombre_persona: uc(block.querySelector(".i-persona")?.value).slice(0,80),
+      item: uc(block.querySelector(".i-item")?.value).slice(0,100),
       version: block.querySelector(".i-version")?.value||"",
-      talla: block.querySelector(".i-talla")?.value.trim().slice(0,20)||"",
-      nombre_numero: block.querySelector(".i-nombren")?.value.trim().slice(0,80)||"",
-      parche: block.querySelector(".i-parche")?.value.trim().slice(0,80)||"",
+      talla: uc(block.querySelector(".i-talla")?.value).slice(0,20),
+      nombre_numero: uc(block.querySelector(".i-nombren")?.value).slice(0,80),
+      parche: uc(block.querySelector(".i-parche")?.value).slice(0,80),
       precio_venta: parseFloat(block.querySelector(".i-precio")?.value)||0,
       lo_que_pago: parseFloat(block.querySelector(".i-loquepago")?.value)||0,
       pagado_item: block.querySelector(".i-pagado-item")?.value||"No"
@@ -688,7 +689,7 @@ async function guardarPedido() {
   try {
     await sbPost("pedidos",[{
       id, tipo: tipoActual,
-      nombre_cliente: nombre,
+      nombre_cliente: nombre.toUpperCase(),
       fecha: v("f-fecha",20)||localDateStr(),
       metodo_pago: tipoActual==="simple"?v("f-pago-met",30):"",
       estado: v("f-estado-new",30)||"Pendiente de pedido",
@@ -789,7 +790,7 @@ async function actualizarPedido() {
   const precioTotal = items.reduce((s,i)=>s+i.precio_venta,0);
   try {
     await sbPatch("pedidos",`id=eq.${encodeURIComponent(id)}`,{
-      nombre_cliente:nombre, fecha:v("e-fecha",20)||localDateStr(),
+      nombre_cliente:nombre.toUpperCase(), fecha:v("e-fecha",20)||localDateStr(),
       metodo_pago: tipo==="simple"?v("e-pago",30):"",
       estado:v("e-estado",30), pagado:v("e-pagado",5),
       precio_total:precioTotal, notas:v("e-notas",300)
@@ -827,10 +828,33 @@ function renderResumen() {
   const ped=pedidos.filter(p=>p.estado==="Pedido").length;
   const env=pedidos.filter(p=>p.estado==="Enviado").length;
   const ent=pedidos.filter(p=>p.estado==="Entregado").length;
-  const facturado=pedidos.filter(isPagado).reduce((s,p)=>s+(parseFloat(p.precio_total)||0),0);
-  const falta=pedidos.filter(p=>!isPagado(p)).reduce((s,p)=>s+(parseFloat(p.precio_total)||0),0);
-  let coste=0;
-  pedidos.filter(isPagado).forEach(p=>{(p._items||[]).forEach(it=>{coste+=parseFloat(it.lo_que_pago)||0;});});
+
+  // Facturado: suma precio_venta de items pagados individualmente (conjunto)
+  // + precio_total de pedidos simples pagados
+  let facturado = 0, falta = 0, coste = 0;
+  pedidos.forEach(p => {
+    const tipo = p.tipo||"simple";
+    const items = p._items||[];
+    if (tipo === "conjunto") {
+      // Cada item se cuenta individualmente según su pagado_item
+      items.forEach(it => {
+        const itPagado = it.pagado_item==="Si"||it.pagado_item==="Sí";
+        const pv = parseFloat(it.precio_venta)||0;
+        const lq = parseFloat(it.lo_que_pago)||0;
+        if (itPagado) { facturado += pv; coste += lq; }
+        else { falta += pv; }
+      });
+    } else {
+      // Pedido simple: se cuenta por el pagado del pedido completo
+      const pTotal = parseFloat(p.precio_total)||0;
+      if (isPagado(p)) {
+        facturado += pTotal;
+        items.forEach(it => { coste += parseFloat(it.lo_que_pago)||0; });
+      } else {
+        falta += pTotal;
+      }
+    }
+  });
   document.getElementById("st-total").textContent=total;
   document.getElementById("st-pend").textContent=pend;
   document.getElementById("st-pedido").textContent=ped;
