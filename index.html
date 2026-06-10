@@ -208,7 +208,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v0.9.3</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v0.9.4</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -219,7 +219,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v0.9.3</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v0.9.4</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" onclick="doLogout()">Salir</button>
@@ -526,7 +526,7 @@ function addItemBlock(containerId, priceDisplayId, tipo) {
           <div class="fg"><label>Item</label><input type="text" class="i-item" placeholder="Ej. Granada CF Local" maxlength="100"></div>
         </div>
         <div class="fg"><label>Versión</label>
-          <select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option></select>
+          <select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select>
         </div>
         <div class="fg"><label>Talla</label><input type="text" class="i-talla" placeholder="Ej. XL" maxlength="20"></div>
         <div class="fg"><label>Nombre y número</label><input type="text" class="i-nombren" placeholder="Ej. Ronaldo 7" maxlength="80"></div>
@@ -542,7 +542,7 @@ function addItemBlock(containerId, priceDisplayId, tipo) {
       <div class="form-grid-3">
         <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" class="i-item" placeholder="Ej. Granada CF Local 24/25" maxlength="100"></div>
         <div class="fg"><label>Versión</label>
-          <select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option></select>
+          <select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select>
         </div>
         <div class="fg"><label>Talla</label><input type="text" class="i-talla" placeholder="Ej. XL" maxlength="20"></div>
         <div class="fg"><label>Nombre y número</label><input type="text" class="i-nombren" placeholder="Ej. Ronaldo 7" maxlength="80"></div>
@@ -977,7 +977,7 @@ function abrirEditar(id) {
             <div class="fg"><label>Nombre persona</label><input type="text" class="i-persona" value="${san(it.nombre_persona||"")}" maxlength="80"></div>
             <div class="fg"><label>Item</label><input type="text" class="i-item" value="${san(it.item||"")}" maxlength="100"></div>
           </div>
-          <div class="fg"><label>Versión</label><select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option></select></div>
+          <div class="fg"><label>Versión</label><select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select></div>
           <div class="fg"><label>Talla</label><input type="text" class="i-talla" value="${san(it.talla||"")}" maxlength="20"></div>
           <div class="fg"><label>Nombre y número</label><input type="text" class="i-nombren" value="${san(it.nombre_numero||"")}" maxlength="80"></div>
           <div class="fg"><label>Parche</label><input type="text" class="i-parche" value="${san(it.parche||"")}" maxlength="80"></div>
@@ -991,7 +991,7 @@ function abrirEditar(id) {
         <button class="remove-item-btn" onclick="${removeCall}" title="Eliminar">×</button>
         <div class="form-grid-3">
           <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" class="i-item" value="${san(it.item||"")}" maxlength="100"></div>
-          <div class="fg"><label>Versión</label><select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option></select></div>
+          <div class="fg"><label>Versión</label><select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select></div>
           <div class="fg"><label>Talla</label><input type="text" class="i-talla" value="${san(it.talla||"")}" maxlength="20"></div>
           <div class="fg"><label>Nombre y número</label><input type="text" class="i-nombren" value="${san(it.nombre_numero||"")}" maxlength="80"></div>
           <div class="fg"><label>Parche</label><input type="text" class="i-parche" value="${san(it.parche||"")}" maxlength="80"></div>
