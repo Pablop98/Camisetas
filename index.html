@@ -845,7 +845,6 @@ async function guardarInlineAdd(pedidoId, sid) {
     const p = pedidos.find(x=>x.id===pedidoId);
     const maxPos = (p?._items||[]).reduce((m,it)=>Math.max(m, parseInt(it.posicion)||0), 0);
     await sbPost("items", items.map((it,i)=>({...it, pedido_id: pedidoId, posicion: maxPos+1+i})));
-    const p = pedidos.find(x=>x.id===pedidoId);
     if (p) {
       const tipo = p.tipo||"simple";
       const itemsActuales = p._items||[];
