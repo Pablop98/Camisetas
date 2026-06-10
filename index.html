@@ -84,6 +84,12 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 .btn-del{background:transparent;border-color:var(--border);color:var(--red);}
 .btn-del:hover{background:var(--red-bg);border-color:var(--red);}
 .toggle-btn{background:transparent;border:none;color:var(--accent);font-size:20px;cursor:pointer;padding:0;line-height:1;font-weight:300;}
+.pagado-toggle{padding:2px 10px;border-radius:3px;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.4px;cursor:pointer;border:none;transition:all .15s;}
+.pagado-toggle.si{background:var(--green-bg);color:var(--green);}
+.pagado-toggle.no{background:var(--red-bg);color:var(--red);}
+.pagado-toggle:hover{opacity:.75;}
+.btn-add-product{background:transparent;border-color:var(--accent);color:var(--accent);}
+.btn-add-product:hover{background:var(--accent-bg);}
 
 /* TIPO SELECTOR */
 .tipo-selector{display:flex;gap:10px;margin-bottom:16px;}
@@ -106,9 +112,22 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 .form-grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
 @media(max-width:600px){
   .form-grid,.form-grid-3{grid-template-columns:1fr;}
-  .table-header-row,.table-main{grid-template-columns:2fr 1fr 1fr 40px;}
-  .table-header-row span:nth-child(n+4):not(:last-child),.table-main>*:nth-child(n+4):not(:last-child){display:none;}
   .tipo-selector{flex-direction:column;}
+  /* Mobile: show only name+estado+toggle, stack pagado+precio as subtitle */
+  .table-header-row{display:none;}
+  .table-main{grid-template-columns:1fr auto;gap:4px;padding:12px 14px;}
+  .table-main .table-cell-estado{order:2;grid-row:1;}
+  .table-main .tc-pagado,.table-main .tc-precio{display:none;}
+  .table-main .tc-toggle{grid-column:2;grid-row:1 / span 2;align-self:center;}
+  .pedido-mobile-sub{display:flex;gap:8px;align-items:center;margin-top:4px;font-size:12px;color:var(--muted);}
+  .detail-table{font-size:12px;}
+  .detail-table th,.detail-table td{padding:6px 6px;}
+  .detail-actions{flex-wrap:wrap;}
+  .btn-detail{font-size:12px;padding:5px 10px;}
+  main{padding:12px;}
+}
+@media(min-width:601px){
+  .pedido-mobile-sub{display:none;}
 }
 .fg{display:flex;flex-direction:column;gap:4px;}
 .fg.full{grid-column:1/-1;}
@@ -340,6 +359,22 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 
 <div class="toast" id="toast"></div>
 
+<!-- MODAL AÑADIR PRODUCTO RÁPIDO -->
+<div class="modal-backdrop" id="modal-addproducto">
+  <div class="modal">
+    <h2 id="ap-titulo">Añadir producto</h2>
+    <input type="hidden" id="ap-pedido-id">
+    <input type="hidden" id="ap-tipo">
+    <div id="ap-container"></div>
+    <button class="add-item-btn" onclick="addItemBlock('ap-container','ap-precio-display',document.getElementById('ap-tipo').value)">＋ Otro producto</button>
+    <div style="font-size:13px;color:var(--muted);margin:8px 0 4px;">Total a añadir: <strong id="ap-precio-display">0.00 €</strong></div>
+    <div class="btn-row" style="margin-top:12px;">
+      <button class="btn btn-primary" onclick="guardarAddProducto()">Guardar</button>
+      <button class="btn btn-secondary" onclick="document.getElementById('modal-addproducto').classList.remove('open')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const SUPABASE_URL = "https://fhaymwuapdcvlqwfhnps.supabase.co";
 const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZoYXltd3VhcGRjdmxxd2ZobnBzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODEwMzU3NTgsImV4cCI6MjA5NjYxMTc1OH0.AxGY3GjE39TQ69HpSJsPMAQe8NP4FR4WDpZU_9AxRBU";
@@ -539,7 +574,9 @@ function renderPedidos() {
     let detailHead, detailRows;
     if (tipo==="conjunto") {
       detailHead = `<tr><th>Persona</th><th>Item</th><th>Versión</th><th>Talla</th><th>Nombre/Nº</th><th>Precio</th><th>Pago</th><th>Pagado</th></tr>`;
-      detailRows = items.map(it=>`<tr>
+      detailRows = items.map(it=>{
+        const pItem = it.pagado_item==="Si"||it.pagado_item==="Sí";
+        return `<tr>
         <td>${san(it.nombre_persona||"—")}</td>
         <td>${san(it.item||"—")}</td>
         <td>${san(it.version||"—")}</td>
@@ -547,8 +584,8 @@ function renderPedidos() {
         <td>${san(it.nombre_numero||"—")}</td>
         <td><strong>${(parseFloat(it.precio_venta)||0).toFixed(2)} €</strong></td>
         <td>${(parseFloat(it.lo_que_pago)||0).toFixed(2)} €</td>
-        <td>${(it.pagado_item==="Si"||it.pagado_item==="Sí")?'<span class="loz loz-si">Sí</span>':'<span class="loz loz-no">No</span>'}</td>
-      </tr>`).join("")||`<tr><td colspan="8" style="color:var(--muted);text-align:center;">Sin productos</td></tr>`;
+        <td><button class="pagado-toggle ${pItem?'si':'no'}" onclick="togglePagadoItem('${p.id}','${it.id}',this)">${pItem?'Sí':'No'}</button></td>
+      </tr>`;}).join("")||`<tr><td colspan="8" style="color:var(--muted);text-align:center;">Sin productos</td></tr>`;
     } else {
       detailHead = `<tr><th>Item</th><th>Versión</th><th>Talla</th><th>Nombre/Nº</th><th>Parche</th><th>Precio</th></tr>`;
       detailRows = items.map(it=>`<tr>
@@ -563,16 +600,20 @@ function renderPedidos() {
 
     return `<div class="table-row" id="row-${sid}">
       <div class="table-main" onclick="toggleDetail('${p.id}','${sid}')">
-        <div><div class="pedido-nombre">${san(p.nombre_cliente||"Sin nombre")} ${tipoLoz}</div></div>
-        <div class="table-cell">${estadoLoz(p.estado)}</div>
-        <div class="table-cell">${pagadoLoz}</div>
-        <div class="table-cell"><strong>${precio} €</strong></div>
-        <div class="table-cell" style="text-align:center;"><button class="toggle-btn" onclick="toggleDetail('${p.id}','${sid}');event.stopPropagation()">＋</button></div>
+        <div>
+          <div class="pedido-nombre">${san(p.nombre_cliente||"Sin nombre")} ${tipoLoz}</div>
+          <div class="pedido-mobile-sub">${estadoLoz(p.estado)} ${pagadoLoz} <span>${precio} €</span></div>
+        </div>
+        <div class="table-cell table-cell-estado">${estadoLoz(p.estado)}</div>
+        <div class="table-cell tc-pagado">${pagadoLoz}</div>
+        <div class="table-cell tc-precio"><strong>${precio} €</strong></div>
+        <div class="table-cell tc-toggle" style="text-align:center;"><button class="toggle-btn" onclick="toggleDetail('${p.id}','${sid}');event.stopPropagation()">＋</button></div>
       </div>
       <div class="table-detail" id="detail-${sid}">
         <table class="detail-table"><thead>${detailHead}</thead><tbody>${detailRows}</tbody></table>
         <div class="detail-actions">
           <button class="btn-detail btn-edit" onclick="abrirEditar('${p.id}')">✏️ Editar</button>
+          <button class="btn-detail btn-add-product" onclick="abrirAddProducto('${p.id}')">＋ Producto</button>
           <button class="btn-detail btn-entregado" onclick="marcarEntregado('${p.id}')">✓ Entregado</button>
           <button class="btn-detail btn-del" onclick="eliminarPedido('${p.id}')">🗑 Borrar</button>
         </div>
@@ -587,6 +628,54 @@ function toggleDetail(id, sid) {
   if (!detail) return;
   const isOpen = detail.classList.toggle("open");
   if (btn) btn.textContent = isOpen?"−":"＋";
+}
+
+async function togglePagadoItem(pedidoId, itemId, btn) {
+  const isNowSi = btn.classList.contains("no");
+  const newVal = isNowSi ? "Si" : "No";
+  try {
+    await sbPatch("items", `id=eq.${encodeURIComponent(itemId)}`, { pagado_item: newVal });
+    btn.classList.toggle("si", isNowSi);
+    btn.classList.toggle("no", !isNowSi);
+    btn.textContent = isNowSi ? "Sí" : "No";
+    // Update local data
+    const p = pedidos.find(x=>x.id===pedidoId);
+    if (p) { const it = (p._items||[]).find(x=>x.id===itemId); if(it) it.pagado_item = newVal; }
+    showToast(isNowSi ? "Marcado como pagado ✓" : "Marcado como no pagado");
+  } catch(e) { showToast("Error: "+e.message); }
+}
+
+// Modal para añadir producto rápido sin entrar en editar completo
+function abrirAddProducto(pedidoId) {
+  const p = pedidos.find(x=>x.id===pedidoId);
+  if (!p) return;
+  const tipo = p.tipo||"simple";
+  document.getElementById("ap-pedido-id").value = pedidoId;
+  document.getElementById("ap-tipo").value = tipo;
+  document.getElementById("ap-titulo").textContent = "Añadir producto — "+san(p.nombre_cliente||"");
+  const cont = document.getElementById("ap-container");
+  cont.innerHTML="";
+  addItemBlock("ap-container","ap-precio-display", tipo);
+  document.getElementById("modal-addproducto").classList.add("open");
+}
+
+async function guardarAddProducto() {
+  const pedidoId = document.getElementById("ap-pedido-id").value;
+  const items = getItemsFromContainer("ap-container");
+  if (!items.length) { showToast("Añade al menos un producto"); return; }
+  try {
+    await sbPost("items", items.map(it=>({...it, pedido_id: pedidoId})));
+    // Recalc precio total
+    const p = pedidos.find(x=>x.id===pedidoId);
+    if (p) {
+      const nuevoTotal = ((p._items||[]).reduce((s,i)=>s+(parseFloat(i.precio_venta)||0),0)) +
+                         items.reduce((s,i)=>s+i.precio_venta,0);
+      await sbPatch("pedidos", `id=eq.${encodeURIComponent(pedidoId)}`, { precio_total: nuevoTotal });
+    }
+    showToast("Producto añadido ✓");
+    document.getElementById("modal-addproducto").classList.remove("open");
+    await cargarDatos();
+  } catch(e) { showToast("Error: "+e.message); }
 }
 
 // ── GUARDAR ─────────────────────────────────────────────────
