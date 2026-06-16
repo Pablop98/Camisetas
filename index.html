@@ -808,6 +808,12 @@ async function togglePagadoItem(pedidoId, itemId, btn) {
     btn.classList.toggle("si", isNowSi);
     btn.classList.toggle("no", !isNowSi);
     btn.textContent = isNowSi ? "Sí" : "No";
+    // Update persona cell color in real time
+    const row = btn.closest("tr");
+    if (row) {
+      const personaCell = row.querySelector("td:nth-child(2)");
+      if (personaCell) personaCell.classList.toggle("cell-persona-pagado", isNowSi);
+    }
     const p = pedidos.find(x=>x.id===pedidoId);
     if (p) { const it = (p._items||[]).find(x=>x.id===itemId); if(it) it.pagado_item = newVal; }
     showToast(isNowSi ? "Marcado como pagado ✓" : "Marcado como no pagado");
@@ -823,12 +829,15 @@ async function toggleEntregadoItem(pedidoId, itemId, btn) {
     btn.classList.toggle("si", isNowSi);
     btn.classList.toggle("no", !isNowSi);
     btn.textContent = isNowSi ? "Sí" : "No";
-    // Update local data
+    // Update item cell color in real time (3rd td = item column)
+    const row = btn.closest("tr");
+    if (row) {
+      const itemCell = row.querySelector("td:nth-child(3)");
+      if (itemCell) itemCell.classList.toggle("cell-item-entregado", isNowSi);
+      row.classList.toggle("entregado-row", isNowSi);
+    }
     const p = pedidos.find(x=>x.id===pedidoId);
     if (p) { const it = (p._items||[]).find(x=>x.id===itemId); if(it) it.entregado_item = newVal; }
-    // Toggle green row bg
-    const row = btn.closest("tr");
-    if (row) row.classList.toggle("entregado-row", isNowSi);
     showToast(isNowSi ? "Marcado como entregado ✓" : "Marcado como no entregado");
   } catch(e) { showToast("Error: "+e.message); }
 }
@@ -1194,7 +1203,7 @@ function showSection(id,btn) {
   document.getElementById("s-"+id).classList.add("visible");
   if(btn)btn.classList.add("active");
   if(id==="resumen")renderResumen();
-  if(id==="faltapagar")renderMorosos();
+  if(id==="morosos")renderMorosos();
 }
 
 function toggleItemEdit(itemId, pedidoId, sid) {
