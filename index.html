@@ -65,11 +65,11 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 .table-header-row{display:grid;grid-template-columns:2.5fr 1.4fr 1fr 1fr 1fr 1fr 50px;padding:10px 14px;background:var(--bg);border-bottom:2px solid var(--border);font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;}
 .table-row{border-bottom:1px solid var(--border);}
 .table-row:last-child{border-bottom:none;}
-.table-main{display:grid;grid-template-columns:2.5fr 1.4fr 1fr 1fr 1fr 1fr 50px;padding:12px 14px;align-items:center;cursor:pointer;transition:background .12s;}
-.table-main:hover{background:#f8f9fa;}
+.table-main{display:grid;grid-template-columns:2.5fr 1.4fr 1fr 1fr 1fr 1fr 50px;padding:12px 14px;align-items:center;cursor:pointer;transition:background .12s;background:var(--bg);}
+.table-main:hover{background:#eaecf0;}
 .pedido-nombre{font-weight:600;font-size:14px;display:flex;align-items:center;gap:6px;text-transform:uppercase;}
 .table-cell{font-size:13px;}
-.table-detail{display:none;padding:0 14px 14px;border-top:1px solid var(--border);background:#fafbfc;}
+.table-detail{display:none;padding:0 14px 14px;border-top:1px solid var(--border);background:var(--surface);}
 .table-detail.open{display:block;}
 .detail-table{width:100%;border-collapse:collapse;margin-top:12px;font-size:13px;}
 .detail-table th{background:var(--bg);padding:8px 10px;text-align:left;font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;border-bottom:2px solid var(--border);}
@@ -223,7 +223,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v0.9.6</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v0.9.7</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -234,7 +234,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v0.9.6</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v0.9.7</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" onclick="doLogout()">Salir</button>
@@ -356,6 +356,10 @@ main{padding:20px;max-width:960px;margin:0 auto;}
           <span>Persona</span><span>Pedido</span><span style="text-align:right;">Deuda total</span>
         </div>
         <div id="morosos-list"></div>
+        <div id="morosos-total" style="display:none;padding:12px 14px;border-top:2px solid var(--border);background:var(--bg);display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;">Total pendiente</span>
+          <span id="morosos-total-amount" style="font-size:18px;font-weight:700;color:var(--red);"></span>
+        </div>
       </div>
     </section>
 
@@ -747,11 +751,12 @@ function renderPedidos() {
       </div>
       <div class="table-detail" id="detail-${sid}">
         <div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0 4px;flex-wrap:wrap;gap:6px;">
-          <div style="display:flex;gap:6px;flex-wrap:wrap;">
+          <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center;">
             <button class="btn-detail btn-edit" onclick="abrirEditar('${p.id}')">✏️ Editar</button>
             <button class="btn-detail btn-add-product" onclick="toggleInlineAdd('${sid}')">＋ Producto</button>
             <button class="btn-detail btn-entregado" onclick="marcarEntregado('${p.id}')">✓ Entregado</button>
             <button class="btn-detail btn-del" onclick="eliminarPedido('${p.id}')">🗑 Borrar</button>
+            ${(p.notas||"").split("\n").filter(x=>x.trim()).map(n=>`<span class="tracking-num" onclick="copiarTracking(this.textContent.replace(' 📋','').trim(),event)" title="Click para copiar">${san(n.trim())}</span>`).join("")}
           </div>
           <button class="btn-detail btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="togglePagoCol(this)">👁 Ocultar Pago</button>
         </div>
@@ -762,14 +767,14 @@ function renderPedidos() {
           <button class="btn-detail btn-add-product" onclick="toggleInlineAdd('${sid}')">＋ Producto</button>
           <button class="btn-detail btn-entregado" onclick="marcarEntregado('${p.id}')">✓ Entregado</button>
           <button class="btn-detail btn-del" onclick="eliminarPedido('${p.id}')">🗑 Borrar</button>
-          <div class="tracking-area">
-            ${p.notas ? `<span class="tracking-num" onclick="copiarTracking('${san(p.notas)}',event)" title="Click para copiar">${san(p.notas)}</span>` : ''}
+          <div class="tracking-area" style="flex-wrap:wrap;">
+            <div id="tracking-nums-${sid}" style="display:flex;flex-wrap:wrap;gap:4px;">${(p.notas||"").split("\n").filter(x=>x.trim()).map(n=>`<span class="tracking-num" onclick="copiarTracking(this.textContent.replace(' 📋','').trim(),event)" title="Click para copiar">${san(n.trim())}</span>`).join("")}</div>
             <div class="tracking-input-wrap" id="ti-${sid}">
               <input type="text" id="ti-input-${sid}" placeholder="Nº seguimiento" maxlength="60">
-              <button class="btn-save-tracking" onclick="guardarTracking('${p.id}','${sid}')">✓</button>
-              <button class="btn-cancel-tracking" onclick="cancelarTracking('${sid}')">✕</button>
+              <button class="btn-save-tracking" data-pid="${p.id}" data-sid="${sid}" onclick="guardarTracking(this.dataset.pid,this.dataset.sid)">✓</button>
+              <button class="btn-cancel-tracking" data-sid="${sid}" onclick="cancelarTracking(this.dataset.sid)">✕</button>
             </div>
-            <button class="btn-detail btn-tracking" onclick="abrirTracking('${sid}')">📦 Nº Seguimiento</button>
+            <button class="btn-detail btn-tracking" data-sid="${sid}" onclick="abrirTracking(this.dataset.sid)">📦 + Seguimiento</button>
           </div>
         </div>
         <div class="inline-add-panel" id="iap-${sid}">
@@ -1328,6 +1333,12 @@ function renderMorosos() {
       <div class="fp-pedido">${[...data.pedidos].map(san).join(", ")}</div>
       <div class="fp-deuda">${data.total.toFixed(2)} €</div>
     </div>`).join("");
+
+  const totalDeuda = entries.reduce((s,[,d])=>s+d.total, 0);
+  const totalEl = document.getElementById("morosos-total");
+  const totalAmt = document.getElementById("morosos-total-amount");
+  if (totalEl) totalEl.style.display = "flex";
+  if (totalAmt) totalAmt.textContent = totalDeuda.toFixed(2)+" €";
 }
 
 function togglePagoCol(btn) {
@@ -1359,11 +1370,15 @@ function cancelarTracking(sid) {
 async function guardarTracking(pedidoId, sid) {
   const inp = document.getElementById("ti-input-"+sid);
   const val = (inp?.value||"").trim();
+  if (!val) { cancelarTracking(sid); return; }
   try {
-    await sbPatch("pedidos", `id=eq.${encodeURIComponent(pedidoId)}`, { notas: val });
     const p = pedidos.find(x=>x.id===pedidoId);
-    if (p) p.notas = val;
-    showToast(val ? "Nº seguimiento guardado ✓" : "Nº seguimiento eliminado");
+    const existing = (p?.notas||"").trim();
+    const newNotas = existing ? existing + "\n" + val : val;
+    await sbPatch("pedidos", `id=eq.${encodeURIComponent(pedidoId)}`, { notas: newNotas });
+    if (p) p.notas = newNotas;
+    showToast("Nº seguimiento añadido ✓");
+    if (inp) inp.value = "";
     cancelarTracking(sid);
     await cargarDatos();
   } catch(e) { showToast("Error: "+e.message); }
