@@ -120,6 +120,11 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 .btn-cancel-tracking{background:var(--bg);color:var(--muted);}
 /* Entregado row highlight */
 .detail-table tr.entregado-row td{background:#e3fcef !important;}
+/* Hide coste/ganancia columns */
+body.hide-finanzas .tc-coste,
+body.hide-finanzas .tc-ganancia,
+body.hide-finanzas .table-header-row span:nth-child(6),
+body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 /* Pagado SI: nombre celda verde */
 .detail-table td.cell-persona-pagado{color:var(--green) !important;font-weight:700;}
 /* Entregado SI: item celda naranja claro */
@@ -223,7 +228,7 @@ main{padding:20px;max-width:960px;margin:0 auto;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.0.0</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.0.1</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -234,9 +239,10 @@ main{padding:20px;max-width:960px;margin:0 auto;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.0.0</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.0.1</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
+      <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
       <button class="topbar-logout" onclick="descargarBackup()" title="Descargar backup en Excel">📥 Backup</button>
       <button class="topbar-logout" onclick="doLogout()">Salir</button>
     </div>
@@ -1414,6 +1420,12 @@ function descargarBackup() {
   document.body.removeChild(a);
   URL.revokeObjectURL(url);
   showToast("Backup descargado ✓");
+}
+
+function toggleFinanzas() {
+  const hidden = document.body.classList.toggle("hide-finanzas");
+  const btn = document.getElementById("btn-toggle-finanzas");
+  if (btn) btn.style.opacity = hidden ? "0.5" : "1";
 }
 
 function showToast(msg) {
