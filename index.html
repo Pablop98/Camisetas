@@ -233,7 +233,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.0.3</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.0.4</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -244,7 +244,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.0.3</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.0.4</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -1349,10 +1349,19 @@ async function eliminarItem(itemId, pedidoId) {
   } catch(e) { showToast("Error: "+e.message); }
 }
 
-let _morosoRefs = {}; // nombre -> {items:[{itemId,pedidoId}], pedidosSimples:[pedidoId]}
+let _morosoRefs = {}; // claveNorm -> {display, items:[{itemId,pedidoId}], pedidosSimples:[pedidoId]}
+
+// Normaliza un nombre para agrupar de forma fiable: quita espacios extra,
+// tildes/diacríticos y diferencias de mayúsculas/minúsculas.
+function normNombre(s) {
+  return (s||"")
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"") // quita acentos
+    .trim().replace(/\s+/g," ") // colapsa espacios múltiples
+    .toUpperCase();
+}
 
 function renderMorosos() {
-  // Build map: persona -> total deuda + referencias para poder marcar como pagado
+  // Build map: clave normalizada -> total deuda + referencias para poder marcar como pagado
   const deudas = {};
   _morosoRefs = {};
 
@@ -1365,26 +1374,26 @@ function renderMorosos() {
       items.forEach(it => {
         const pagado = it.pagado_item==="Si"||it.pagado_item==="Sí";
         if (!pagado && it.nombre_persona) {
-          const nombre = (it.nombre_persona||"").trim().toUpperCase();
-          if (nombre) {
-            if (!deudas[nombre]) deudas[nombre] = { total:0, pedidos:new Set() };
-            if (!_morosoRefs[nombre]) _morosoRefs[nombre] = { items:[], pedidosSimples:[] };
-            deudas[nombre].total += parseFloat(it.precio_venta)||0;
-            deudas[nombre].pedidos.add(p.nombre_cliente||p.id);
-            _morosoRefs[nombre].items.push({ itemId: it.id, pedidoId: p.id });
+          const clave = normNombre(it.nombre_persona);
+          if (clave) {
+            if (!deudas[clave]) deudas[clave] = { display:(it.nombre_persona||"").trim().toUpperCase(), total:0, pedidos:new Set() };
+            if (!_morosoRefs[clave]) _morosoRefs[clave] = { items:[], pedidosSimples:[] };
+            deudas[clave].total += parseFloat(it.precio_venta)||0;
+            deudas[clave].pedidos.add(p.nombre_cliente||p.id);
+            _morosoRefs[clave].items.push({ itemId: it.id, pedidoId: p.id });
           }
         }
       });
     } else {
       // Simple: whole pedido pagado or not
       if (!isPagado(p)) {
-        const nombre = (p.nombre_cliente||"").trim().toUpperCase();
-        if (nombre) {
-          if (!deudas[nombre]) deudas[nombre] = { total:0, pedidos:new Set() };
-          if (!_morosoRefs[nombre]) _morosoRefs[nombre] = { items:[], pedidosSimples:[] };
-          deudas[nombre].total += parseFloat(p.precio_total)||0;
-          deudas[nombre].pedidos.add(p.nombre_cliente||p.id);
-          _morosoRefs[nombre].pedidosSimples.push(p.id);
+        const clave = normNombre(p.nombre_cliente);
+        if (clave) {
+          if (!deudas[clave]) deudas[clave] = { display:(p.nombre_cliente||"").trim().toUpperCase(), total:0, pedidos:new Set() };
+          if (!_morosoRefs[clave]) _morosoRefs[clave] = { items:[], pedidosSimples:[] };
+          deudas[clave].total += parseFloat(p.precio_total)||0;
+          deudas[clave].pedidos.add(p.nombre_cliente||p.id);
+          _morosoRefs[clave].pedidosSimples.push(p.id);
         }
       }
     }
@@ -1401,12 +1410,12 @@ function renderMorosos() {
     return;
   }
 
-  container.innerHTML = entries.map(([nombre, data]) => `
+  container.innerHTML = entries.map(([clave, data]) => `
     <div class="faltapagar-row">
-      <div class="fp-nombre">${san(nombre)}</div>
+      <div class="fp-nombre">${san(data.display)}</div>
       <div class="fp-pedido">${[...data.pedidos].map(san).join(", ")}</div>
       <div class="fp-deuda">${data.total.toFixed(2)} €</div>
-      <button class="btn-detail btn-entregado fp-marcar-btn" data-nombre="${san(nombre)}" onclick="marcarPersonaPagada(this.dataset.nombre)">✓ Marcar pagado</button>
+      <button class="btn-detail btn-entregado fp-marcar-btn" data-clave="${san(clave)}" onclick="marcarPersonaPagada(this.dataset.clave)">✓ Marcar pagado</button>
     </div>`).join("");
 
   const totalDeuda = entries.reduce((s,[,d])=>s+d.total, 0);
@@ -1416,10 +1425,10 @@ function renderMorosos() {
   if (totalAmt) totalAmt.textContent = totalDeuda.toFixed(2)+" €";
 }
 
-async function marcarPersonaPagada(nombre) {
-  const refs = _morosoRefs[nombre];
-  if (!refs) return;
-  if (!confirm(`¿Marcar como pagado todo lo pendiente de ${nombre}?`)) return;
+async function marcarPersonaPagada(clave) {
+  const refs = _morosoRefs[clave];
+  if (!refs) { showToast("No se encontró la deuda de esta persona"); return; }
+  if (!confirm(`¿Marcar como pagado todo lo pendiente de ${clave}? (${refs.items.length} producto(s) y ${refs.pedidosSimples.length} pedido(s) simple(s))`)) return;
 
   try {
     // Marcar items de pedidos conjunto
