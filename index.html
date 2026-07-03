@@ -274,7 +274,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.1.1</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.1.2</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -285,7 +285,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.1.1</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.1.2</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -423,6 +423,19 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
     <section id="s-clientes" class="section">
       <div class="filter-bar">
         <input type="text" id="clientes-search" placeholder="Buscar cliente..." oninput="renderClientes()">
+        <button class="btn btn-primary" style="white-space:nowrap;" onclick="toggleNuevoClientePanel()">＋ Nuevo cliente</button>
+      </div>
+      <div class="inline-add-panel" id="nuevo-cliente-panel">
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">Registrar cliente</div>
+        <div class="form-grid">
+          <div class="fg"><label>Nombre *</label><input type="text" id="nc-nombre" maxlength="80" placeholder="Ej. Juan García"></div>
+          <div class="fg"><label>Teléfono</label><input type="text" id="nc-telefono" maxlength="30" placeholder="Ej. 600 000 000"></div>
+          <div class="fg full"><label>Notas</label><input type="text" id="nc-notas" maxlength="300" placeholder="Opcional"></div>
+        </div>
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn btn-primary" style="padding:7px 16px;font-size:13px;" onclick="guardarNuevoCliente()">Guardar cliente</button>
+          <button class="btn btn-secondary" style="padding:7px 16px;font-size:13px;" onclick="toggleNuevoClientePanel()">Cancelar</button>
+        </div>
       </div>
       <div class="table-wrap">
         <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr .8fr 50px;padding:9px 14px;background:var(--bg);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">
@@ -1611,6 +1624,43 @@ function renderClientes() {
       '</div>'+
     '</div>';
   }).join("");
+}
+
+function toggleNuevoClientePanel() {
+  const panel = document.getElementById("nuevo-cliente-panel");
+  if (!panel) return;
+  const isOpen = panel.classList.toggle("open");
+  if (isOpen) {
+    document.getElementById("nc-nombre").focus();
+  } else {
+    document.getElementById("nc-nombre").value = "";
+    document.getElementById("nc-telefono").value = "";
+    document.getElementById("nc-notas").value = "";
+  }
+}
+
+async function guardarNuevoCliente() {
+  const nombre = (document.getElementById("nc-nombre")?.value||"").trim().toUpperCase().slice(0,80);
+  const telefono = (document.getElementById("nc-telefono")?.value||"").trim().slice(0,30);
+  const notas = (document.getElementById("nc-notas")?.value||"").trim().slice(0,300);
+  if (!nombre) { showToast("El nombre es obligatorio"); return; }
+
+  const clave = normNombre(nombre);
+  if (clientes.some(cl => normNombre(cl.nombre) === clave)) {
+    showToast("Ya existe un cliente con ese nombre");
+    return;
+  }
+
+  try {
+    const inserted = await sbPost("clientes", [{ nombre, telefono, notas, direcciones: [] }]);
+    if (inserted && inserted[0]) clientes.push(inserted[0]);
+    // Refrescar datalist de autocompletado
+    const dl = document.getElementById("clientes-datalist");
+    if (dl) dl.innerHTML = clientes.map(cl=>'<option value="'+san(cl.nombre)+'">').join("");
+    showToast("Cliente registrado ✓");
+    toggleNuevoClientePanel();
+    renderClientes();
+  } catch(e) { showToast("Error: "+e.message); }
 }
 
 function toggleClienteDetail(cid) {
