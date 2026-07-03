@@ -208,6 +208,9 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 .fp-pedido{font-size:12px;color:var(--muted);}
 .fp-deuda{font-size:16px;font-weight:700;color:var(--red);text-align:right;}
 .fp-marcar-btn{font-size:11px;padding:5px 10px;white-space:nowrap;}
+.dir-row{display:flex;gap:8px;align-items:center;}
+.dir-row input{padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--bg);}
+.dir-row input:focus{outline:none;border-color:var(--accent);}
 
 /* ── PANELES / EXTRAS ── */
 .inline-add-panel{display:none;background:var(--accent-bg);border:1px dashed var(--accent-dim);border-radius:var(--radius-md);padding:14px;margin-top:10px;}
@@ -271,7 +274,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.0.7</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.1.1</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -282,7 +285,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.0.7</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.1.1</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -295,6 +298,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
     <button onclick="showSection('nuevo',this)">+ Nuevo</button>
     <button onclick="showSection('resumen',this)">Resumen</button>
     <button onclick="showSection('morosos',this)">💸 Morosos</button>
+    <button onclick="showSection('clientes',this)">👥 Clientes</button>
     <button onclick="showSection('ajustes',this)">Ajustes</button>
   </div>
   <main>
@@ -351,7 +355,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
       <div class="form-card">
         <h3>Datos del pedido</h3>
         <div class="form-grid">
-          <div class="fg"><label>Nombre del pedido *</label><input type="text" id="f-nombre" maxlength="100" placeholder="Ej. Juan García"></div>
+          <div class="fg"><label>Nombre del pedido *</label><input type="text" id="f-nombre" maxlength="100" placeholder="Ej. Juan García" list="clientes-datalist"></div>
           <div class="fg"><label>Fecha</label><input type="date" id="f-fecha"></div>
           <div class="fg"><label>Estado</label>
             <select id="f-estado-new">
@@ -415,6 +419,19 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
       </div>
     </section>
 
+    <!-- CLIENTES -->
+    <section id="s-clientes" class="section">
+      <div class="filter-bar">
+        <input type="text" id="clientes-search" placeholder="Buscar cliente..." oninput="renderClientes()">
+      </div>
+      <div class="table-wrap">
+        <div style="display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr .8fr 50px;padding:9px 14px;background:var(--bg);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">
+          <span>Cliente</span><span>Gastado</span><span>Pendiente</span><span>Mi ganancia</span><span>Compras</span><span></span>
+        </div>
+        <div id="clientes-list"></div>
+      </div>
+    </section>
+
     <!-- AJUSTES -->
     <section id="s-ajustes" class="section">
       <div class="form-card">
@@ -444,7 +461,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
     <input type="hidden" id="e-id">
     <input type="hidden" id="e-tipo">
     <div class="form-grid" style="margin-bottom:14px;">
-      <div class="fg"><label>Nombre del pedido</label><input type="text" id="e-nombre" maxlength="100"></div>
+      <div class="fg"><label>Nombre del pedido</label><input type="text" id="e-nombre" maxlength="100" list="clientes-datalist"></div>
       <div class="fg"><label>Fecha</label><input type="date" id="e-fecha"></div>
       <div class="fg"><label>Estado</label>
         <select id="e-estado">
@@ -474,6 +491,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   </div>
 </div>
 
+<datalist id="clientes-datalist"></datalist>
 <div class="toast" id="toast"></div>
 
 <!-- inline add product panel replaces the modal -->
@@ -485,7 +503,7 @@ const SB = { "Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorizat
 const SESSION_KEY = "ped_session";
 const ESTADO_ORDER = ["Pendiente de pedido","Pedido","Enviado","Entregado"];
 
-let pedidos = [], allItems = [], itemCounter = 0, tipoActual = "simple";
+let pedidos = [], allItems = [], clientes = [], itemCounter = 0, tipoActual = "simple";
 
 // ── AUTH ────────────────────────────────────────────────────
 async function sha256(str) {
@@ -542,8 +560,11 @@ async function cargarDatos() {
 
   document.getElementById("conn-status").textContent="⏳ Cargando...";
   try {
-    const [peds,its] = await Promise.all([sbGet("pedidos","order=created_at.desc"),sbGet("items","order=posicion.asc,created_at.asc")]);
-    pedidos=peds; allItems=its;
+    const [peds,its,clis] = await Promise.all([sbGet("pedidos","order=created_at.desc"),sbGet("items","order=posicion.asc,created_at.asc"),sbGet("clientes","order=nombre.asc")]);
+    pedidos=peds; allItems=its; clientes=clis;
+    // Rellenar datalist de autocompletado
+    const dl = document.getElementById("clientes-datalist");
+    if (dl) dl.innerHTML = clientes.map(cl=>'<option value="'+san(cl.nombre)+'">').join("");
     pedidos.forEach(p=>{p._items=allItems.filter(i=>i.pedido_id===p.id);});
     document.getElementById("conn-status").textContent="✅ "+pedidos.length+" pedidos";
     document.getElementById("config-status").textContent="✅ Conectado · "+pedidos.length+" pedidos";
@@ -609,7 +630,7 @@ function addItemBlock(containerId, priceDisplayId, tipo) {
       <button class="remove-item-btn" onclick="${removeCall}" title="Eliminar">×</button>
       <div class="form-grid-3">
         <div class="fg full" style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-          <div class="fg"><label>Nombre persona</label><input type="text" class="i-persona" placeholder="Ej. Carlos" maxlength="80"></div>
+          <div class="fg"><label>Nombre persona</label><input type="text" class="i-persona" placeholder="Ej. Carlos" maxlength="80" list="clientes-datalist"></div>
           <div class="fg"><label>Item</label><input type="text" class="i-item" placeholder="Ej. Granada CF Local" maxlength="100"></div>
         </div>
         <div class="fg"><label>Versión</label>
@@ -1100,6 +1121,7 @@ async function guardarInlineAdd(pedidoId, sid, isTop=false) {
       await sbPatch("pedidos", `id=eq.${encodeURIComponent(pedidoId)}`, { precio_total: nuevoTotal });
     }
     showToast("Producto añadido ✓");
+    await registrarClientesNuevos(items.map(it=>it.nombre_persona));
     toggleInlineAdd(sid, isTop);
     await cargarDatos();
   } catch(e) { showToast("Error: "+e.message); }
@@ -1129,6 +1151,9 @@ async function guardarPedido() {
     }]);
     if (items.length>0) await sbPost("items",items.map((it,i)=>({...it,pedido_id:id,posicion:i})));
     showToast("Pedido guardado ✓");
+    // Registro automático de clientes nuevos
+    const nombresUsados = tipoActual==="conjunto" ? items.map(it=>it.nombre_persona) : [nombre];
+    await registrarClientesNuevos(nombresUsados);
     limpiarNuevo();
     await cargarDatos();
     showSection("pedidos",document.querySelector(".navbar button"));
@@ -1176,7 +1201,7 @@ function abrirEditar(id) {
         <button class="remove-item-btn" onclick="${removeCall}" title="Eliminar">×</button>
         <div class="form-grid-3">
           <div class="fg full" style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-            <div class="fg"><label>Nombre persona</label><input type="text" class="i-persona" value="${san(it.nombre_persona||"")}" maxlength="80"></div>
+            <div class="fg"><label>Nombre persona</label><input type="text" class="i-persona" value="${san(it.nombre_persona||"")}" maxlength="80" list="clientes-datalist"></div>
             <div class="fg"><label>Item</label><input type="text" class="i-item" value="${san(it.item||"")}" maxlength="100"></div>
           </div>
           <div class="fg"><label>Versión</label><select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select></div>
@@ -1240,6 +1265,8 @@ async function actualizarPedido() {
       entregado_item: it.entregado_item || (existingItems[i]?.entregado_item||"No")
     })));
     showToast("Pedido actualizado ✓");
+    const nombresEdit = tipo==="conjunto" ? items.map(it=>it.nombre_persona) : [nombre];
+    await registrarClientesNuevos(nombresEdit);
     cerrarModal();
     await cargarDatos();
   } catch(e){showToast("Error al actualizar: "+e.message);}
@@ -1321,6 +1348,7 @@ function showSection(id,btn) {
   if(btn)btn.classList.add("active");
   if(id==="resumen")renderResumen();
   if(id==="morosos")renderMorosos();
+  if(id==="clientes")renderClientes();
 }
 
 function toggleItemEdit(itemId, pedidoId, sid) {
@@ -1496,6 +1524,157 @@ async function marcarPersonaPagada(clave) {
   } else {
     showToast(clave + " marcado como pagado ✓");
   }
+}
+
+function statsCliente(clave) {
+  // Calcula estadísticas al vuelo desde pedidos/items, cruzando por nombre normalizado
+  const st = { gastado:0, pendiente:0, coste:0, compras:0, historial:[] };
+  pedidos.forEach(p => {
+    const tipo = p.tipo||"simple";
+    if (tipo === "conjunto") {
+      (p._items||[]).forEach(it => {
+        if (normNombre(it.nombre_persona) !== clave) return;
+        const pv = parseFloat(it.precio_venta)||0;
+        const lq = parseFloat(it.lo_que_pago)||0;
+        st.compras++;
+        st.historial.push({ fecha:p.fecha, desc:it.item||"—", pedido:p.nombre_cliente||p.id, importe:pv, pagado:esSi(it.pagado_item) });
+        if (esSi(it.pagado_item)) { st.gastado += pv; st.coste += lq; }
+        else st.pendiente += pv;
+      });
+    } else {
+      if (normNombre(p.nombre_cliente) !== clave) return;
+      const pt = parseFloat(p.precio_total)||0;
+      st.compras++;
+      st.historial.push({ fecha:p.fecha, desc:(p._items||[]).length+" producto(s)", pedido:p.nombre_cliente||p.id, importe:pt, pagado:isPagado(p) });
+      if (isPagado(p)) {
+        st.gastado += pt;
+        (p._items||[]).forEach(it => { st.coste += parseFloat(it.lo_que_pago)||0; });
+      } else st.pendiente += pt;
+    }
+  });
+  st.ganancia = st.gastado - st.coste;
+  return st;
+}
+
+function renderClientes() {
+  const container = document.getElementById("clientes-list");
+  if (!container) return;
+  const search = (document.getElementById("clientes-search")?.value||"").toLowerCase();
+
+  let lista = clientes.filter(cl => !search || (cl.nombre||"").toLowerCase().includes(search));
+  if (!lista.length) {
+    container.innerHTML = '<div class="empty"><div class="icon">👥</div>No hay clientes registrados. Se dan de alta automáticamente al crear pedidos.</div>';
+    return;
+  }
+
+  container.innerHTML = lista.map(cl => {
+    const clave = normNombre(cl.nombre);
+    const st = statsCliente(clave);
+    const cid = cl.id;
+    const histRows = st.historial.map(h =>
+      '<tr><td>'+san(formatFecha(h.fecha))+'</td><td>'+san(h.desc)+'</td><td>'+san(h.pedido)+'</td><td style="font-variant-numeric:tabular-nums;"><strong>'+h.importe.toFixed(2)+' €</strong></td><td>'+(h.pagado?'<span class="loz loz-si">Pagado</span>':'<span class="loz loz-no">Debe</span>')+'</td></tr>'
+    ).join("") || '<tr><td colspan="5" style="color:var(--muted);text-align:center;">Sin compras todavía</td></tr>';
+
+    const direcciones = Array.isArray(cl.direcciones) ? cl.direcciones : [];
+    const dirRows = direcciones.map((d,i) =>
+      '<div class="dir-row" data-idx="'+i+'">'+
+        '<input type="text" class="cl-dir-etiqueta" value="'+san(d.etiqueta||"")+'" placeholder="Etiqueta (Casa, Trabajo...)" maxlength="30" style="flex:0 0 140px;">'+
+        '<input type="text" class="cl-dir-texto" value="'+san(d.direccion||"")+'" placeholder="Dirección completa" maxlength="200" style="flex:1;">'+
+        '<button class="btn-item-del" onclick="this.closest(\'.dir-row\').remove()" title="Quitar">🗑</button>'+
+      '</div>'
+    ).join("") || '<div style="font-size:12px;color:var(--muted);padding:4px 0;">Sin direcciones guardadas</div>';
+
+    return '<div class="table-row">'+
+      '<div class="table-main" style="grid-template-columns:1.5fr 1fr 1fr 1fr .8fr 50px;" onclick="toggleClienteDetail(\''+cid+'\')">'+
+        '<div class="pedido-nombre">'+san(cl.nombre)+'</div>'+
+        '<div class="table-cell" style="font-variant-numeric:tabular-nums;color:var(--green);font-weight:700;">'+st.gastado.toFixed(2)+' €</div>'+
+        '<div class="table-cell" style="font-variant-numeric:tabular-nums;color:'+(st.pendiente>0?'var(--red)':'var(--muted)')+';font-weight:700;">'+st.pendiente.toFixed(2)+' €</div>'+
+        '<div class="table-cell" style="font-variant-numeric:tabular-nums;color:var(--accent);font-weight:700;">'+st.ganancia.toFixed(2)+' €</div>'+
+        '<div class="table-cell">'+st.compras+'</div>'+
+        '<div class="table-cell" style="text-align:center;"><button class="toggle-btn" onclick="toggleClienteDetail(\''+cid+'\');event.stopPropagation()">＋</button></div>'+
+      '</div>'+
+      '<div class="table-detail" id="cliente-detail-'+cid+'">'+
+        '<div class="form-grid" style="margin:12px 0;">'+
+          '<div class="fg"><label>Teléfono</label><input type="text" id="cl-tel-'+cid+'" value="'+san(cl.telefono||"")+'" maxlength="30"></div>'+
+          '<div class="fg full"><label>Notas</label><input type="text" id="cl-notas-'+cid+'" value="'+san(cl.notas||"")+'" maxlength="300"></div>'+
+        '</div>'+
+        '<div class="fg full" style="margin-bottom:10px;">'+
+          '<label>Direcciones</label>'+
+          '<div id="cl-direcciones-'+cid+'" style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">'+dirRows+'</div>'+
+          '<button class="add-item-btn" style="margin-top:8px;" onclick="agregarFilaDireccion(\''+cid+'\')">＋ Añadir dirección</button>'+
+        '</div>'+
+        '<div class="btn-row" style="margin-bottom:14px;">'+
+          '<button class="btn btn-primary" style="padding:7px 16px;font-size:13px;" onclick="guardarCliente(\''+cid+'\')">Guardar datos</button>'+
+          '<button class="btn-detail btn-del" onclick="eliminarCliente(\''+cid+'\')">🗑 Eliminar cliente</button>'+
+        '</div>'+
+        '<table class="detail-table"><thead><tr><th>Fecha</th><th>Compra</th><th>Pedido</th><th>Importe</th><th>Estado</th></tr></thead><tbody>'+histRows+'</tbody></table>'+
+      '</div>'+
+    '</div>';
+  }).join("");
+}
+
+function toggleClienteDetail(cid) {
+  const d = document.getElementById("cliente-detail-"+cid);
+  if (d) d.classList.toggle("open");
+}
+
+function agregarFilaDireccion(cid) {
+  const wrap = document.getElementById("cl-direcciones-"+cid);
+  if (!wrap) return;
+  // Quitar el mensaje de "sin direcciones" si estaba
+  const vacio = wrap.querySelector(":scope > div:not(.dir-row)");
+  if (vacio) vacio.remove();
+  const row = document.createElement("div");
+  row.className = "dir-row";
+  row.innerHTML =
+    '<input type="text" class="cl-dir-etiqueta" placeholder="Etiqueta (Casa, Trabajo...)" maxlength="30" style="flex:0 0 140px;">'+
+    '<input type="text" class="cl-dir-texto" placeholder="Dirección completa" maxlength="200" style="flex:1;">'+
+    '<button class="btn-item-del" onclick="this.closest(\'.dir-row\').remove()" title="Quitar">🗑</button>';
+  wrap.appendChild(row);
+  row.querySelector(".cl-dir-texto").focus();
+}
+
+async function guardarCliente(cid) {
+  const tel = (document.getElementById("cl-tel-"+cid)?.value||"").trim().slice(0,30);
+  const notas = (document.getElementById("cl-notas-"+cid)?.value||"").trim().slice(0,300);
+  const wrap = document.getElementById("cl-direcciones-"+cid);
+  const direcciones = [];
+  if (wrap) {
+    wrap.querySelectorAll(".dir-row").forEach(row => {
+      const etiqueta = row.querySelector(".cl-dir-etiqueta")?.value.trim().slice(0,30)||"";
+      const direccion = row.querySelector(".cl-dir-texto")?.value.trim().slice(0,200)||"";
+      if (direccion) direcciones.push({ etiqueta: etiqueta.toUpperCase(), direccion: direccion.toUpperCase() });
+    });
+  }
+  try {
+    await sbPatch("clientes", "id=eq."+encodeURIComponent(cid), { direcciones:direcciones, telefono:tel, notas:notas });
+    const cl = clientes.find(x=>x.id===cid);
+    if (cl) { cl.direcciones=direcciones; cl.telefono=tel; cl.notas=notas; }
+    showToast("Cliente actualizado ✓");
+    renderClientes();
+  } catch(e) { showToast("Error: "+e.message); }
+}
+
+async function eliminarCliente(cid) {
+  if (!confirm("¿Eliminar este cliente del registro? Sus pedidos NO se borran, solo la ficha.")) return;
+  try {
+    await sbDelete("clientes", "id=eq."+encodeURIComponent(cid));
+    clientes = clientes.filter(x=>x.id!==cid);
+    renderClientes();
+    showToast("Cliente eliminado");
+  } catch(e) { showToast("Error: "+e.message); }
+}
+
+// Registra automáticamente nombres nuevos tras guardar un pedido (con confirmación)
+async function registrarClientesNuevos(nombres) {
+  const registrados = new Set(clientes.map(cl=>normNombre(cl.nombre)));
+  const nuevos = [...new Set(nombres.map(n=>(n||"").trim().toUpperCase()).filter(n=>n && !registrados.has(normNombre(n))))];
+  if (!nuevos.length) return;
+  if (!confirm("Clientes nuevos detectados: "+nuevos.join(", ")+". ¿Registrarlos? (podrás añadir dirección y teléfono en la pestaña Clientes)")) return;
+  try {
+    await sbPost("clientes", nuevos.map(n=>({ nombre:n })));
+    showToast(nuevos.length+" cliente(s) registrado(s) ✓");
+  } catch(e) { showToast("Error registrando clientes: "+e.message); }
 }
 
 function togglePagoCol(btn) {
