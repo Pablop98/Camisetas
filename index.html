@@ -274,7 +274,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.1.2</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.1.3</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -285,7 +285,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.1.2</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.1.3</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -431,6 +431,13 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
           <div class="fg"><label>Nombre *</label><input type="text" id="nc-nombre" maxlength="80" placeholder="Ej. Juan García"></div>
           <div class="fg"><label>Teléfono</label><input type="text" id="nc-telefono" maxlength="30" placeholder="Ej. 600 000 000"></div>
           <div class="fg full"><label>Notas</label><input type="text" id="nc-notas" maxlength="300" placeholder="Opcional"></div>
+        </div>
+        <div class="fg full" style="margin-top:10px;">
+          <label>Dirección (opcional)</label>
+          <div class="dir-row" style="margin-top:4px;">
+            <input type="text" id="nc-dir-etiqueta" placeholder="Etiqueta (Casa, Trabajo...)" maxlength="30" style="flex:0 0 140px;">
+            <input type="text" id="nc-dir-texto" placeholder="Dirección completa" maxlength="200" style="flex:1;">
+          </div>
         </div>
         <div class="btn-row" style="margin-top:12px;">
           <button class="btn btn-primary" style="padding:7px 16px;font-size:13px;" onclick="guardarNuevoCliente()">Guardar cliente</button>
@@ -1636,6 +1643,8 @@ function toggleNuevoClientePanel() {
     document.getElementById("nc-nombre").value = "";
     document.getElementById("nc-telefono").value = "";
     document.getElementById("nc-notas").value = "";
+    document.getElementById("nc-dir-etiqueta").value = "";
+    document.getElementById("nc-dir-texto").value = "";
   }
 }
 
@@ -1643,6 +1652,8 @@ async function guardarNuevoCliente() {
   const nombre = (document.getElementById("nc-nombre")?.value||"").trim().toUpperCase().slice(0,80);
   const telefono = (document.getElementById("nc-telefono")?.value||"").trim().slice(0,30);
   const notas = (document.getElementById("nc-notas")?.value||"").trim().slice(0,300);
+  const dirEtiqueta = (document.getElementById("nc-dir-etiqueta")?.value||"").trim().toUpperCase().slice(0,30);
+  const dirTexto = (document.getElementById("nc-dir-texto")?.value||"").trim().toUpperCase().slice(0,200);
   if (!nombre) { showToast("El nombre es obligatorio"); return; }
 
   const clave = normNombre(nombre);
@@ -1651,8 +1662,10 @@ async function guardarNuevoCliente() {
     return;
   }
 
+  const direcciones = dirTexto ? [{ etiqueta: dirEtiqueta, direccion: dirTexto }] : [];
+
   try {
-    const inserted = await sbPost("clientes", [{ nombre, telefono, notas, direcciones: [] }]);
+    const inserted = await sbPost("clientes", [{ nombre, telefono, notas, direcciones }]);
     if (inserted && inserted[0]) clientes.push(inserted[0]);
     // Refrescar datalist de autocompletado
     const dl = document.getElementById("clientes-datalist");
