@@ -208,9 +208,11 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 .fp-pedido{font-size:12px;color:var(--muted);}
 .fp-deuda{font-size:16px;font-weight:700;color:var(--red);text-align:right;}
 .fp-marcar-btn{font-size:11px;padding:5px 10px;white-space:nowrap;}
-.dir-row{display:flex;gap:8px;align-items:center;}
-.dir-row input{padding:7px 10px;border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--text);background:var(--bg);}
-.dir-row input:focus{outline:none;border-color:var(--accent);}
+.dir-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;}
+.dir-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.dir-card-grid .fg label{font-size:10px;}
+.dir-card-grid .fg input{padding:6px 9px;font-size:12px;}
+@media(max-width:600px){.dir-card-grid{grid-template-columns:1fr;}}
 
 /* ── PANELES / EXTRAS ── */
 .inline-add-panel{display:none;background:var(--accent-bg);border:1px dashed var(--accent-dim);border-radius:var(--radius-md);padding:14px;margin-top:10px;}
@@ -274,7 +276,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.1.3</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.1.4</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -285,7 +287,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.1.3</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.1.4</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -434,9 +436,13 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
         </div>
         <div class="fg full" style="margin-top:10px;">
           <label>Dirección (opcional)</label>
-          <div class="dir-row" style="margin-top:4px;">
-            <input type="text" id="nc-dir-etiqueta" placeholder="Etiqueta (Casa, Trabajo...)" maxlength="30" style="flex:0 0 140px;">
-            <input type="text" id="nc-dir-texto" placeholder="Dirección completa" maxlength="200" style="flex:1;">
+          <div class="dir-card-grid" style="margin-top:4px;">
+            <div class="fg"><label>Destinatario</label><input type="text" id="nc-dir-destinatario" maxlength="100"></div>
+            <div class="fg"><label>Teléfono envío</label><input type="text" id="nc-dir-telefono" maxlength="30"></div>
+            <div class="fg"><label>Provincia/Estado</label><input type="text" id="nc-dir-provincia" maxlength="80"></div>
+            <div class="fg"><label>Ciudad</label><input type="text" id="nc-dir-ciudad" maxlength="80"></div>
+            <div class="fg full"><label>Dirección</label><input type="text" id="nc-dir-direccion" maxlength="200"></div>
+            <div class="fg"><label>Código postal</label><input type="text" id="nc-dir-cp" maxlength="12"></div>
           </div>
         </div>
         <div class="btn-row" style="margin-top:12px;">
@@ -1597,10 +1603,19 @@ function renderClientes() {
 
     const direcciones = Array.isArray(cl.direcciones) ? cl.direcciones : [];
     const dirRows = direcciones.map((d,i) =>
-      '<div class="dir-row" data-idx="'+i+'">'+
-        '<input type="text" class="cl-dir-etiqueta" value="'+san(d.etiqueta||"")+'" placeholder="Etiqueta (Casa, Trabajo...)" maxlength="30" style="flex:0 0 140px;">'+
-        '<input type="text" class="cl-dir-texto" value="'+san(d.direccion||"")+'" placeholder="Dirección completa" maxlength="200" style="flex:1;">'+
-        '<button class="btn-item-del" onclick="this.closest(\'.dir-row\').remove()" title="Quitar">🗑</button>'+
+      '<div class="dir-card" data-idx="'+i+'">'+
+        '<div class="dir-card-grid">'+
+          '<div class="fg"><label>Destinatario</label><input type="text" class="cl-dir-destinatario" value="'+san(d.destinatario||"")+'" maxlength="100"></div>'+
+          '<div class="fg"><label>Teléfono</label><input type="text" class="cl-dir-telefono" value="'+san(d.telefono||"")+'" maxlength="30"></div>'+
+          '<div class="fg"><label>Provincia/Estado</label><input type="text" class="cl-dir-provincia" value="'+san(d.provincia||"")+'" maxlength="80"></div>'+
+          '<div class="fg"><label>Ciudad</label><input type="text" class="cl-dir-ciudad" value="'+san(d.ciudad||"")+'" maxlength="80"></div>'+
+          '<div class="fg full"><label>Dirección</label><input type="text" class="cl-dir-direccion" value="'+san(d.direccion||"")+'" maxlength="200"></div>'+
+          '<div class="fg"><label>Código postal</label><input type="text" class="cl-dir-cp" value="'+san(d.cp||"")+'" maxlength="12"></div>'+
+        '</div>'+
+        '<div class="btn-row" style="margin-top:8px;">'+
+          '<button class="btn-detail btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="copiarDireccion(this)">📋 Copiar dirección</button>'+
+          '<button class="btn-item-del" onclick="this.closest(\'.dir-card\').remove()" title="Quitar">🗑 Quitar</button>'+
+        '</div>'+
       '</div>'
     ).join("") || '<div style="font-size:12px;color:var(--muted);padding:4px 0;">Sin direcciones guardadas</div>';
 
@@ -1620,7 +1635,7 @@ function renderClientes() {
         '</div>'+
         '<div class="fg full" style="margin-bottom:10px;">'+
           '<label>Direcciones</label>'+
-          '<div id="cl-direcciones-'+cid+'" style="display:flex;flex-direction:column;gap:6px;margin-top:4px;">'+dirRows+'</div>'+
+          '<div id="cl-direcciones-'+cid+'" style="display:flex;flex-direction:column;gap:10px;margin-top:6px;">'+dirRows+'</div>'+
           '<button class="add-item-btn" style="margin-top:8px;" onclick="agregarFilaDireccion(\''+cid+'\')">＋ Añadir dirección</button>'+
         '</div>'+
         '<div class="btn-row" style="margin-bottom:14px;">'+
@@ -1640,11 +1655,10 @@ function toggleNuevoClientePanel() {
   if (isOpen) {
     document.getElementById("nc-nombre").focus();
   } else {
-    document.getElementById("nc-nombre").value = "";
-    document.getElementById("nc-telefono").value = "";
-    document.getElementById("nc-notas").value = "";
-    document.getElementById("nc-dir-etiqueta").value = "";
-    document.getElementById("nc-dir-texto").value = "";
+    ["nc-nombre","nc-telefono","nc-notas","nc-dir-destinatario","nc-dir-telefono","nc-dir-provincia","nc-dir-ciudad","nc-dir-direccion","nc-dir-cp"].forEach(id=>{
+      const el = document.getElementById(id);
+      if (el) el.value = "";
+    });
   }
 }
 
@@ -1652,8 +1666,12 @@ async function guardarNuevoCliente() {
   const nombre = (document.getElementById("nc-nombre")?.value||"").trim().toUpperCase().slice(0,80);
   const telefono = (document.getElementById("nc-telefono")?.value||"").trim().slice(0,30);
   const notas = (document.getElementById("nc-notas")?.value||"").trim().slice(0,300);
-  const dirEtiqueta = (document.getElementById("nc-dir-etiqueta")?.value||"").trim().toUpperCase().slice(0,30);
-  const dirTexto = (document.getElementById("nc-dir-texto")?.value||"").trim().toUpperCase().slice(0,200);
+  const destinatario = (document.getElementById("nc-dir-destinatario")?.value||"").trim().toUpperCase().slice(0,100);
+  const dirTelefono = (document.getElementById("nc-dir-telefono")?.value||"").trim().slice(0,30);
+  const provincia = (document.getElementById("nc-dir-provincia")?.value||"").trim().toUpperCase().slice(0,80);
+  const ciudad = (document.getElementById("nc-dir-ciudad")?.value||"").trim().toUpperCase().slice(0,80);
+  const direccion = (document.getElementById("nc-dir-direccion")?.value||"").trim().toUpperCase().slice(0,200);
+  const cp = (document.getElementById("nc-dir-cp")?.value||"").trim().slice(0,12);
   if (!nombre) { showToast("El nombre es obligatorio"); return; }
 
   const clave = normNombre(nombre);
@@ -1662,7 +1680,9 @@ async function guardarNuevoCliente() {
     return;
   }
 
-  const direcciones = dirTexto ? [{ etiqueta: dirEtiqueta, direccion: dirTexto }] : [];
+  const direcciones = (destinatario || direccion || ciudad)
+    ? [{ destinatario, telefono: dirTelefono, provincia, ciudad, direccion, cp }]
+    : [];
 
   try {
     const inserted = await sbPost("clientes", [{ nombre, telefono, notas, direcciones }]);
@@ -1685,16 +1705,52 @@ function agregarFilaDireccion(cid) {
   const wrap = document.getElementById("cl-direcciones-"+cid);
   if (!wrap) return;
   // Quitar el mensaje de "sin direcciones" si estaba
-  const vacio = wrap.querySelector(":scope > div:not(.dir-row)");
+  const vacio = wrap.querySelector(":scope > div:not(.dir-card)");
   if (vacio) vacio.remove();
-  const row = document.createElement("div");
-  row.className = "dir-row";
-  row.innerHTML =
-    '<input type="text" class="cl-dir-etiqueta" placeholder="Etiqueta (Casa, Trabajo...)" maxlength="30" style="flex:0 0 140px;">'+
-    '<input type="text" class="cl-dir-texto" placeholder="Dirección completa" maxlength="200" style="flex:1;">'+
-    '<button class="btn-item-del" onclick="this.closest(\'.dir-row\').remove()" title="Quitar">🗑</button>';
-  wrap.appendChild(row);
-  row.querySelector(".cl-dir-texto").focus();
+  const card = document.createElement("div");
+  card.className = "dir-card";
+  card.innerHTML =
+    '<div class="dir-card-grid">'+
+      '<div class="fg"><label>Destinatario</label><input type="text" class="cl-dir-destinatario" maxlength="100"></div>'+
+      '<div class="fg"><label>Teléfono</label><input type="text" class="cl-dir-telefono" maxlength="30"></div>'+
+      '<div class="fg"><label>Provincia/Estado</label><input type="text" class="cl-dir-provincia" maxlength="80"></div>'+
+      '<div class="fg"><label>Ciudad</label><input type="text" class="cl-dir-ciudad" maxlength="80"></div>'+
+      '<div class="fg full"><label>Dirección</label><input type="text" class="cl-dir-direccion" maxlength="200"></div>'+
+      '<div class="fg"><label>Código postal</label><input type="text" class="cl-dir-cp" maxlength="12"></div>'+
+    '</div>'+
+    '<div class="btn-row" style="margin-top:8px;">'+
+      '<button class="btn-detail btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="copiarDireccion(this)">📋 Copiar dirección</button>'+
+      '<button class="btn-item-del" onclick="this.closest(\'.dir-card\').remove()" title="Quitar">🗑 Quitar</button>'+
+    '</div>';
+  wrap.appendChild(card);
+  card.querySelector(".cl-dir-destinatario").focus();
+}
+
+// Construye el texto formateado de una dirección a partir de una tarjeta .dir-card
+function textoDireccion(card) {
+  const g = sel => (card.querySelector(sel)?.value||"").trim();
+  return "Destinatario: "+g(".cl-dir-destinatario")+"\\n"+
+         "Provincia/Estado: "+g(".cl-dir-provincia")+"\\n"+
+         "Ciudad: "+g(".cl-dir-ciudad")+"\\n"+
+         "Dirección: "+g(".cl-dir-direccion")+"\\n"+
+         "Código postal: "+g(".cl-dir-cp")+"\\n"+
+         "Teléfono: "+g(".cl-dir-telefono");
+}
+
+function copiarDireccion(btn) {
+  const card = btn.closest(".dir-card");
+  if (!card) return;
+  const texto = textoDireccion(card);
+  navigator.clipboard.writeText(texto).then(()=>{
+    showToast("Dirección copiada ✓");
+  }).catch(()=>{
+    const ta = document.createElement("textarea");
+    ta.value = texto; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    showToast("Dirección copiada ✓");
+  });
 }
 
 async function guardarCliente(cid) {
@@ -1703,10 +1759,17 @@ async function guardarCliente(cid) {
   const wrap = document.getElementById("cl-direcciones-"+cid);
   const direcciones = [];
   if (wrap) {
-    wrap.querySelectorAll(".dir-row").forEach(row => {
-      const etiqueta = row.querySelector(".cl-dir-etiqueta")?.value.trim().slice(0,30)||"";
-      const direccion = row.querySelector(".cl-dir-texto")?.value.trim().slice(0,200)||"";
-      if (direccion) direcciones.push({ etiqueta: etiqueta.toUpperCase(), direccion: direccion.toUpperCase() });
+    wrap.querySelectorAll(".dir-card").forEach(card => {
+      const destinatario = card.querySelector(".cl-dir-destinatario")?.value.trim().toUpperCase().slice(0,100)||"";
+      const telefono = card.querySelector(".cl-dir-telefono")?.value.trim().slice(0,30)||"";
+      const provincia = card.querySelector(".cl-dir-provincia")?.value.trim().toUpperCase().slice(0,80)||"";
+      const ciudad = card.querySelector(".cl-dir-ciudad")?.value.trim().toUpperCase().slice(0,80)||"";
+      const direccion = card.querySelector(".cl-dir-direccion")?.value.trim().toUpperCase().slice(0,200)||"";
+      const cp = card.querySelector(".cl-dir-cp")?.value.trim().slice(0,12)||"";
+      // Solo guardamos la tarjeta si tiene al menos un dato relevante
+      if (destinatario || direccion || ciudad) {
+        direcciones.push({ destinatario, telefono, provincia, ciudad, direccion, cp });
+      }
     });
   }
   try {
