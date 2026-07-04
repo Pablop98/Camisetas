@@ -276,7 +276,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.1.4</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.1.5</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -287,7 +287,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.1.4</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.1.5</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -1729,11 +1729,12 @@ function agregarFilaDireccion(cid) {
 // Construye el texto formateado de una dirección a partir de una tarjeta .dir-card
 function textoDireccion(card) {
   const g = sel => (card.querySelector(sel)?.value||"").trim();
-  return "Destinatario: "+g(".cl-dir-destinatario")+"\\n"+
-         "Provincia/Estado: "+g(".cl-dir-provincia")+"\\n"+
-         "Ciudad: "+g(".cl-dir-ciudad")+"\\n"+
-         "Dirección: "+g(".cl-dir-direccion")+"\\n"+
-         "Código postal: "+g(".cl-dir-cp")+"\\n"+
+  const NL = String.fromCharCode(10);
+  return "Destinatario: "+g(".cl-dir-destinatario")+NL+
+         "Provincia/Estado: "+g(".cl-dir-provincia")+NL+
+         "Ciudad: "+g(".cl-dir-ciudad")+NL+
+         "Dirección: "+g(".cl-dir-direccion")+NL+
+         "Código postal: "+g(".cl-dir-cp")+NL+
          "Teléfono: "+g(".cl-dir-telefono");
 }
 
