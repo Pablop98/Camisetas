@@ -276,7 +276,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.2.1</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.2.2</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -287,7 +287,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.2.1</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.2.2</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -1941,7 +1941,7 @@ function generarWordPedido(pedidoId) {
     // Línea horizontal separadora entre grupos de producto (no antes del primero)
     if (idx > 0) {
       bodyHtml += SALTO;
-      bodyHtml += '<hr style="border:none;border-top:1px solid #999999;max-width:480px;margin:0;">';
+      bodyHtml += '<table width="480" style="width:100%;max-width:480px;border-collapse:collapse;"><tr><td width="480" style="border:none;border-top:1px solid #999999;font-size:1pt;line-height:1pt;padding:0;">&nbsp;</td></tr></table>';
       bodyHtml += SALTO;
     }
 
