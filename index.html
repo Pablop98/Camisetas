@@ -1918,24 +1918,30 @@ function generarWordPedido(pedidoId) {
   const titulo = san(p.nombre_cliente||"PEDIDO");
   const FUENTE = "font-family:Calibri,Arial,sans-serif;";
   const VERDE = "#4DA92D";
+  // Párrafo vacío para forzar un salto de línea real en Word (una <br> sola se colapsa)
+  const SALTO = '<p style="'+FUENTE+'font-size:11pt;margin:0;">&nbsp;</p>';
 
   let bodyHtml = "";
-  bodyHtml += '<h1 style="'+FUENTE+'font-size:20pt;margin-bottom:2px;">'+titulo+'</h1>';
-  bodyHtml += '<p style="'+FUENTE+'font-size:10pt;color:#666;margin-top:0;">Fecha: '+san(formatFecha(p.fecha))+' &nbsp;·&nbsp; Estado: '+san(p.estado||"")+'</p>';
 
-  items.forEach(function(it){
+  items.forEach(function(it, idx){
     const nombreImg = san((it.item||"PRODUCTO").toString().toUpperCase());
+
+    // Dos saltos de línea entre productos (no antes del primero)
+    if (idx > 0) { bodyHtml += SALTO + SALTO; }
 
     // Hueco donde pegar la foto manualmente, con el nombre del producto como referencia
     // (usamos una tabla con altura fija en vez de flexbox: Word no soporta flexbox)
-    bodyHtml += '<table style="width:100%;max-width:480px;border-collapse:collapse;margin-top:18px;"><tr>';
+    bodyHtml += '<table style="width:100%;max-width:480px;border-collapse:collapse;"><tr>';
     bodyHtml += '<td height="260" align="center" valign="middle" style="border:2px dashed #999999;background:#f2f2f2;'+FUENTE+'">';
     bodyHtml += '<span style="font-size:15pt;font-weight:bold;color:#666666;">📷<br>'+nombreImg+'<br>'+
                 '<span style="font-size:9pt;font-weight:normal;color:#999999;">(pegar foto aquí)</span></span>';
     bodyHtml += '</td></tr></table>';
 
+    // Salto de línea entre la foto y la tabla de datos
+    bodyHtml += SALTO;
+
     // Tabla de datos del producto
-    bodyHtml += '<table style="border-collapse:collapse;width:100%;max-width:480px;'+FUENTE+'font-size:10pt;margin-top:8px;">';
+    bodyHtml += '<table style="border-collapse:collapse;width:100%;max-width:480px;'+FUENTE+'font-size:10pt;">';
     bodyHtml += '<tr>';
     if (tipo === "conjunto") {
       bodyHtml += '<td style="background:'+VERDE+';color:#ffffff;font-weight:bold;padding:6px;border:1px solid #999999;text-align:center;">PERSONA</td>';
@@ -1954,6 +1960,17 @@ function generarWordPedido(pedidoId) {
     bodyHtml += '<td style="padding:6px;border:1px solid #999999;text-align:center;">'+san(it.parche||"")+'</td>';
     bodyHtml += '</tr></table>';
   });
+
+  // Bloque de dirección en blanco al final, listo para rellenar y mandar al proveedor
+  bodyHtml += SALTO + SALTO;
+  bodyHtml += '<p style="'+FUENTE+'font-size:11pt;margin:0;line-height:1.6;">';
+  bodyHtml += 'Destinatario: <br>';
+  bodyHtml += 'Provincia/Estado:<br>';
+  bodyHtml += 'Ciudad:<br>';
+  bodyHtml += 'Dirección: <br>';
+  bodyHtml += 'Código postal: <br>';
+  bodyHtml += 'Teléfono:';
+  bodyHtml += '</p>';
 
   const fullHtml =
     '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">' +
