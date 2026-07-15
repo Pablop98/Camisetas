@@ -276,7 +276,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.2.0</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.2.0.1</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -287,7 +287,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.2.0</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.2.0.1</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -1911,7 +1911,6 @@ async function guardarTracking(pedidoId, sid) {
 function generarWordPedido(pedidoId) {
   const p = pedidos.find(x=>x.id===pedidoId);
   if (!p) { showToast("No se encontró el pedido"); return; }
-  const tipo = p.tipo||"simple";
   const items = p._items||[];
   if (!items.length) { showToast("Este pedido no tiene productos"); return; }
 
@@ -1921,12 +1920,25 @@ function generarWordPedido(pedidoId) {
   // Párrafo vacío para forzar un salto de línea real en Word (una <br> sola se colapsa)
   const SALTO = '<p style="'+FUENTE+'font-size:11pt;margin:0;">&nbsp;</p>';
 
+  // Agrupar productos por nombre (misma normalización que usamos en Morosos/Clientes),
+  // así "ESPAÑA BLANCA" x7 comparte una sola foto y todas sus filas van en la misma tabla.
+  const grupos = [];
+  const indicePorClave = {};
+  items.forEach(function(it){
+    const clave = normNombre(it.item||"");
+    if (!(clave in indicePorClave)) {
+      indicePorClave[clave] = grupos.length;
+      grupos.push({ nombre: it.item||"PRODUCTO", filas: [] });
+    }
+    grupos[indicePorClave[clave]].filas.push(it);
+  });
+
   let bodyHtml = "";
 
-  items.forEach(function(it, idx){
-    const nombreImg = san((it.item||"PRODUCTO").toString().toUpperCase());
+  grupos.forEach(function(grupo, idx){
+    const nombreImg = san(grupo.nombre.toString().toUpperCase());
 
-    // Dos saltos de línea entre productos (no antes del primero)
+    // Dos saltos de línea entre grupos de producto (no antes del primero)
     if (idx > 0) { bodyHtml += SALTO + SALTO; }
 
     // Hueco donde pegar la foto manualmente, con el nombre del producto como referencia
@@ -1940,25 +1952,23 @@ function generarWordPedido(pedidoId) {
     // Salto de línea entre la foto y la tabla de datos
     bodyHtml += SALTO;
 
-    // Tabla de datos del producto
+    // Tabla de datos: cabecera + una fila por cada unidad de este producto
     bodyHtml += '<table style="border-collapse:collapse;width:100%;max-width:480px;'+FUENTE+'font-size:10pt;">';
     bodyHtml += '<tr>';
-    if (tipo === "conjunto") {
-      bodyHtml += '<td style="background:'+VERDE+';color:#ffffff;font-weight:bold;padding:6px;border:1px solid #999999;text-align:center;">PERSONA</td>';
-    }
     bodyHtml += '<td style="background:'+VERDE+';color:#ffffff;font-weight:bold;padding:6px;border:1px solid #999999;text-align:center;">VERSION</td>';
     bodyHtml += '<td style="background:'+VERDE+';color:#ffffff;font-weight:bold;padding:6px;border:1px solid #999999;text-align:center;">SIZE</td>';
     bodyHtml += '<td style="background:'+VERDE+';color:#ffffff;font-weight:bold;padding:6px;border:1px solid #999999;text-align:center;">NAME + NUMBER</td>';
     bodyHtml += '<td style="background:'+VERDE+';color:#ffffff;font-weight:bold;padding:6px;border:1px solid #999999;text-align:center;">PATCH</td>';
-    bodyHtml += '</tr><tr>';
-    if (tipo === "conjunto") {
-      bodyHtml += '<td style="padding:6px;border:1px solid #999999;text-align:center;">'+san(it.nombre_persona||"")+'</td>';
-    }
-    bodyHtml += '<td style="padding:6px;border:1px solid #999999;text-align:center;">'+san(it.version||"")+'</td>';
-    bodyHtml += '<td style="padding:6px;border:1px solid #999999;text-align:center;">'+san(it.talla||"")+'</td>';
-    bodyHtml += '<td style="padding:6px;border:1px solid #999999;text-align:center;">'+san(it.nombre_numero||"")+'</td>';
-    bodyHtml += '<td style="padding:6px;border:1px solid #999999;text-align:center;">'+san(it.parche||"")+'</td>';
-    bodyHtml += '</tr></table>';
+    bodyHtml += '</tr>';
+    grupo.filas.forEach(function(it){
+      bodyHtml += '<tr>';
+      bodyHtml += '<td style="padding:6px;border:1px solid #999999;text-align:center;">'+san(it.version||"")+'</td>';
+      bodyHtml += '<td style="padding:6px;border:1px solid #999999;text-align:center;">'+san(it.talla||"")+'</td>';
+      bodyHtml += '<td style="padding:6px;border:1px solid #999999;text-align:center;">'+san(it.nombre_numero||"")+'</td>';
+      bodyHtml += '<td style="padding:6px;border:1px solid #999999;text-align:center;">'+san(it.parche||"")+'</td>';
+      bodyHtml += '</tr>';
+    });
+    bodyHtml += '</table>';
   });
 
   // Bloque de dirección en blanco al final, listo para rellenar y mandar al proveedor
