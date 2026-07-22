@@ -276,7 +276,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.2.2</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.2.3</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -287,7 +287,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.2.2</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.2.3</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -1920,6 +1920,17 @@ function generarWordPedido(pedidoId) {
   // Párrafo vacío para forzar un salto de línea real en Word (una <br> sola se colapsa)
   const SALTO = '<p style="'+FUENTE+'font-size:11pt;margin:0;">&nbsp;</p>';
 
+  // Orden de tallas: adulto de menor a mayor, después las de niño (numéricas) de menor a mayor
+  const ORDEN_TALLAS_ADULTO = ["XS","S","M","L","XL","XXL","2XL","XXXL","3XL","4XL","5XL"];
+  function posicionTalla(t) {
+    const s = (t||"").toString().trim().toUpperCase();
+    const idx = ORDEN_TALLAS_ADULTO.indexOf(s);
+    if (idx !== -1) return idx;
+    const num = parseFloat(s.replace(",", "."));
+    if (!isNaN(num)) return 1000 + num; // tallas de kids (numéricas) van después, ordenadas
+    return 2000; // cualquier cosa rara al final
+  }
+
   // Agrupar productos por nombre (misma normalización que usamos en Morosos/Clientes),
   // así "ESPAÑA BLANCA" x7 comparte una sola foto y todas sus filas van en la misma tabla.
   const grupos = [];
@@ -1931,6 +1942,11 @@ function generarWordPedido(pedidoId) {
       grupos.push({ nombre: it.item||"PRODUCTO", filas: [] });
     }
     grupos[indicePorClave[clave]].filas.push(it);
+  });
+
+  // Ordenar las filas de cada grupo por talla: S, M, L, XL, XXL... y luego las de kids
+  grupos.forEach(function(grupo){
+    grupo.filas.sort(function(a,b){ return posicionTalla(a.talla) - posicionTalla(b.talla); });
   });
 
   let bodyHtml = "";
