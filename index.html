@@ -31,20 +31,38 @@
   --shadow-md:0 8px 24px rgba(0,0,0,.5);
 }
 
-/* ── TEMA: Clásico Blanco y Negro ── */
-body[data-theme="clasico_bn"] {
-  --bg:#ffffff; --surface:#ffffff; --surface2:#f2f2f2; --border:#d0d0d0;
-  --text:#1a1a1a; --muted:#6b6b6b;
-  --accent:#1a1a1a; --accent-text:#ffffff; --accent-dim:#cfcfcf; --accent-bg:#eeeeee;
-  --hover-bg:#e8e8e8;
-  --green:#1a7a3a; --green-bg:#e6f4ea;
-  --amber:#8a6d00; --amber-bg:#fff6d6;
-  --red:#b91c1c; --red-bg:#fbe4e4;
-  --purple:#5b21b6; --purple-bg:#ece4fb;
-  --blue2:#1e40af; --blue2-bg:#e2e9fb;
-  --gray:#6b6b6b; --gray-bg:#eeeeee;
-  --shadow:0 1px 2px rgba(0,0,0,.08);
-  --shadow-md:0 8px 24px rgba(0,0,0,.12);
+/* ── TEMA: Campo de Fútbol ── */
+body[data-theme="campo"] {
+  --bg:#2f7a3d; --surface:#ffffff; --surface2:#eef6f0; --border:#d7e6da;
+  --text:#1b2e20; --muted:#6f8375;
+  --accent:#256b34; --accent-text:#ffffff; --accent-dim:#bcdcc2; --accent-bg:#e6f5e9;
+  --hover-bg:#e4f1e7;
+  --topbar-bg:var(--surface); --navbar-bg:var(--surface); --bar-text:var(--accent);
+  --green:#256b34; --green-bg:#e3f3e6;
+  --amber:#b8860b; --amber-bg:#fff3d6;
+  --red:#c0392b; --red-bg:#fbe0dd;
+  --purple:#6a4a9c; --purple-bg:#ece3f7;
+  --blue2:#2e6da4; --blue2-bg:#dfeaf5;
+  --gray:#6f8375; --gray-bg:#eef3ef;
+  --shadow:0 1px 2px rgba(0,0,0,.15);
+  --shadow-md:0 8px 24px rgba(0,0,0,.25);
+}
+body[data-theme="campo"] {
+  background-image: url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20viewBox%3D%220%200%201050%20680%22%20preserveAspectRatio%3D%22xMidYMid%20slice%22%3E%0A%20%20%3Cdefs%3E%0A%20%20%20%20%3Cpattern%20id%3D%22stripes%22%20width%3D%22100%22%20height%3D%22680%22%20patternUnits%3D%22userSpaceOnUse%22%3E%0A%20%20%20%20%20%20%3Crect%20width%3D%2250%22%20height%3D%22680%22%20fill%3D%22%232f7a3d%22/%3E%0A%20%20%20%20%20%20%3Crect%20x%3D%2250%22%20width%3D%2250%22%20height%3D%22680%22%20fill%3D%22%23256b34%22/%3E%0A%20%20%20%20%3C/pattern%3E%0A%20%20%3C/defs%3E%0A%20%20%3Crect%20width%3D%221050%22%20height%3D%22680%22%20fill%3D%22url%28%23stripes%29%22/%3E%0A%20%20%3Cg%20fill%3D%22none%22%20stroke%3D%22%23ffffff%22%20stroke-width%3D%224%22%20stroke-opacity%3D%220.85%22%3E%0A%20%20%20%20%3Crect%20x%3D%2250%22%20y%3D%2250%22%20width%3D%22950%22%20height%3D%22580%22/%3E%0A%20%20%20%20%3Cline%20x1%3D%22525%22%20y1%3D%2250%22%20x2%3D%22525%22%20y2%3D%22630%22/%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22525%22%20cy%3D%22340%22%20r%3D%2291.5%22/%3E%0A%20%20%20%20%3Crect%20x%3D%2250%22%20y%3D%22138.5%22%20width%3D%22165%22%20height%3D%22403%22/%3E%0A%20%20%20%20%3Crect%20x%3D%22835%22%20y%3D%22138.5%22%20width%3D%22165%22%20height%3D%22403%22/%3E%0A%20%20%20%20%3Crect%20x%3D%2250%22%20y%3D%22248.4%22%20width%3D%2255%22%20height%3D%22183.2%22/%3E%0A%20%20%20%20%3Crect%20x%3D%22945%22%20y%3D%22248.4%22%20width%3D%2255%22%20height%3D%22183.2%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M%20215%20275%20A%2091.5%2091.5%200%200%201%20215%20405%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M%20835%20275%20A%2091.5%2091.5%200%200%200%20835%20405%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M%2050%2065%20A%2015%2015%200%200%201%2065%2050%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M%201000%2050%20A%2015%2015%200%200%201%201000%2065%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M%2065%20630%20A%2015%2015%200%200%201%2050%20615%22/%3E%0A%20%20%20%20%3Cpath%20d%3D%22M%201000%20615%20A%2015%2015%200%200%201%20985%20630%22/%3E%0A%20%20%3C/g%3E%0A%20%20%3Cg%20fill%3D%22%23ffffff%22%20fill-opacity%3D%220.85%22%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22525%22%20cy%3D%22340%22%20r%3D%224%22/%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22160%22%20cy%3D%22340%22%20r%3D%224%22/%3E%0A%20%20%20%20%3Ccircle%20cx%3D%22890%22%20cy%3D%22340%22%20r%3D%224%22/%3E%0A%20%20%3C/g%3E%0A%3C/svg%3E");
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+body[data-theme="campo"]::after {
+  content:"";
+  position:fixed;
+  inset:0;
+  opacity:0.35;
+  mix-blend-mode:overlay;
+  pointer-events:none;
+  z-index:0;
+  background-image:url("data:image/svg+xml;utf8,%3Csvg%20xmlns%3D%27http%3A//www.w3.org/2000/svg%27%20width%3D%27200%27%20height%3D%27200%27%3E%3Cfilter%20id%3D%27n%27%3E%3CfeTurbulence%20type%3D%27fractalNoise%27%20baseFrequency%3D%270.9%27%20numOctaves%3D%272%27%20stitchTiles%3D%27stitch%27/%3E%3CfeColorMatrix%20type%3D%27matrix%27%20values%3D%270%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200%200%20%200%200%200%200.5%200%27/%3E%3C/filter%3E%3Crect%20width%3D%27100%25%27%20height%3D%27100%25%27%20filter%3D%27url%28%2523n%29%27/%3E%3C/svg%3E");
 }
 
 /* ── TEMA: Neon ── */
@@ -109,7 +127,7 @@ h1,h2,h3,.login-logo,.topbar-title,.page-title,.tipo-label,.pedido-nombre,.svalu
 }
 
 /* ── LOGIN ── */
-#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;}
+#login-screen{display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px;position:relative;z-index:1;}
 .login-box{background:var(--surface);border:1px solid var(--border);border-top:3px solid var(--accent);border-radius:var(--radius-md);padding:40px 36px;width:100%;max-width:380px;box-shadow:var(--shadow-md);}
 .login-logo{font-size:26px;font-weight:700;color:var(--accent);margin-bottom:4px;text-transform:uppercase;}
 .login-sub{font-size:13px;color:var(--muted);margin-bottom:28px;}
@@ -123,7 +141,7 @@ h1,h2,h3,.login-logo,.topbar-title,.page-title,.tipo-label,.pedido-nombre,.svalu
 .login-err{font-size:13px;color:var(--red);margin-top:10px;min-height:16px;text-align:center;}
 
 /* ── APP CHROME ── */
-#app-screen{display:none;min-height:100vh;}
+#app-screen{display:none;min-height:100vh;position:relative;z-index:1;}
 .topbar{background:var(--topbar-bg);border-bottom:1px solid var(--border);padding:0 20px;display:flex;align-items:center;justify-content:space-between;height:52px;position:sticky;top:0;z-index:200;}
 .topbar-title{color:var(--bar-text);font-size:18px;font-weight:700;text-transform:uppercase;}
 .topbar-right{display:flex;align-items:center;gap:8px;}
@@ -351,7 +369,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.2.7</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.2.8</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -362,7 +380,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.2.7</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.2.8</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -614,7 +632,7 @@ let temaActual = "estadio_nocturno";
 // ── TEMAS ───────────────────────────────────────────────────
 const TEMAS = [
   { id:"estadio_nocturno", nombre:"🌙 Estadio Nocturno", colores:["#0f1512","#1e2822","#f2c14e"] },
-  { id:"clasico_bn",       nombre:"⚫ Clásico B/N",        colores:["#ffffff","#f2f2f2","#1a1a1a"] },
+  { id:"campo",            nombre:"⚽ Campo de Fútbol",    colores:["#2f7a3d","#eef6f0","#256b34"] },
   { id:"neon",             nombre:"⚡ Neon",               colores:["#0a0014","#1e0530","#ff2ec4"] },
   { id:"retro_vintage",    nombre:"🟤 Retro Vintage",      colores:["#f2e8d5","#ecdfc4","#7a2e2e"] },
   { id:"gris_acero",       nombre:"🔘 Gris Acero",         colores:["#383d42","#4f555c","#5b9bd5"] }
