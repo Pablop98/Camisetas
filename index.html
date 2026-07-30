@@ -296,6 +296,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 .fp-deuda{font-size:16px;font-weight:700;color:var(--red);text-align:right;}
 .fp-marcar-btn{font-size:11px;padding:5px 10px;white-space:nowrap;}
 .dir-card{background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;}
+input[type="color"]{height:38px;padding:3px;cursor:pointer;}
 .dir-card-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
 .dir-card-grid .fg label{font-size:10px;}
 .dir-card-grid .fg input{padding:6px 9px;font-size:12px;}
@@ -369,7 +370,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.2.9</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.3.0</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -380,7 +381,7 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.2.9</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.3.0</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -556,6 +557,67 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
       <div class="form-card">
         <h3>Tema visual</h3>
         <div id="tema-selector" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;"></div>
+
+        <div id="personalizador-panel" class="inline-add-panel" style="margin-top:16px;">
+          <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:12px;">🎨 Personalizar tema</div>
+          <div class="btn-row" style="margin-bottom:16px;">
+            <button class="btn btn-secondary" id="modo-basico-btn" style="padding:7px 16px;font-size:13px;" onclick="cambiarModoPersonalizacion('basico')">Básico</button>
+            <button class="btn btn-secondary" id="modo-avanzado-btn" style="padding:7px 16px;font-size:13px;" onclick="cambiarModoPersonalizacion('avanzado')">Avanzado</button>
+          </div>
+
+          <!-- MODO BASICO -->
+          <div id="personalizador-basico">
+            <div class="form-grid">
+              <div class="fg"><label>Fondo de la página</label><input type="color" id="pers-bas-bg" value="#0f1512"></div>
+              <div class="fg"><label>Fondo de las tarjetas</label><input type="color" id="pers-bas-surface" value="#171f1a"></div>
+              <div class="fg"><label>Texto</label><input type="color" id="pers-bas-text" value="#e9efe9"></div>
+              <div class="fg"><label>Color de acento</label><input type="color" id="pers-bas-accent" value="#f2c14e"></div>
+            </div>
+            <div class="info-box" style="margin-top:14px;">El resto de colores (bordes, barras, estados de pago...) se calculan automáticamente a partir de estos 4.</div>
+          </div>
+
+          <!-- MODO AVANZADO -->
+          <div id="personalizador-avanzado" style="display:none;">
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:10px 0 6px;">Base</div>
+            <div class="form-grid">
+              <div class="fg"><label>Fondo página</label><input type="color" id="pers-adv-bg" value="#0f1512"></div>
+              <div class="fg"><label>Fondo tarjetas</label><input type="color" id="pers-adv-surface" value="#171f1a"></div>
+              <div class="fg"><label>Fondo secundario / inputs</label><input type="color" id="pers-adv-surface2" value="#1e2822"></div>
+              <div class="fg"><label>Bordes</label><input type="color" id="pers-adv-border" value="#2b3831"></div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px;">Texto</div>
+            <div class="form-grid">
+              <div class="fg"><label>Texto principal</label><input type="color" id="pers-adv-text" value="#e9efe9"></div>
+              <div class="fg"><label>Texto secundario</label><input type="color" id="pers-adv-muted" value="#8fa398"></div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px;">Acento</div>
+            <div class="form-grid">
+              <div class="fg"><label>Color de acento</label><input type="color" id="pers-adv-accent" value="#f2c14e"></div>
+              <div class="fg"><label>Texto sobre acento</label><input type="color" id="pers-adv-accent-text" value="#141105"></div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px;">Barras</div>
+            <div class="form-grid">
+              <div class="fg"><label>Fondo barra superior</label><input type="color" id="pers-adv-topbar-bg" value="#171f1a"></div>
+              <div class="fg"><label>Texto barra superior</label><input type="color" id="pers-adv-topbar-text" value="#f2c14e"></div>
+              <div class="fg"><label>Fondo barra de pestañas</label><input type="color" id="pers-adv-navbar-bg" value="#171f1a"></div>
+              <div class="fg"><label>Texto pestaña activa</label><input type="color" id="pers-adv-navbar-active-text" value="#f2c14e"></div>
+              <div class="fg"><label>Texto pestañas inactivas</label><input type="color" id="pers-adv-navbar-text" value="#8fa398"></div>
+            </div>
+            <div style="font-size:11px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin:14px 0 6px;">Estados</div>
+            <div class="form-grid">
+              <div class="fg"><label>Pagado / Entregado</label><input type="color" id="pers-adv-green" value="#63c887"></div>
+              <div class="fg"><label>Pendiente</label><input type="color" id="pers-adv-amber" value="#f2c14e"></div>
+              <div class="fg"><label>Deuda / No pagado</label><input type="color" id="pers-adv-red" value="#ff7b72"></div>
+              <div class="fg"><label>Enviado</label><input type="color" id="pers-adv-purple" value="#b8a5f0"></div>
+              <div class="fg"><label>Info</label><input type="color" id="pers-adv-blue2" value="#7cb8f0"></div>
+            </div>
+          </div>
+
+          <div class="btn-row" style="margin-top:16px;">
+            <button class="btn btn-primary" onclick="guardarPersonalizado()">Guardar y aplicar</button>
+            <button class="btn btn-secondary" onclick="cerrarPersonalizador()">Cancelar</button>
+          </div>
+        </div>
       </div>
       <div class="form-card">
         <h3>Estado de la conexión</h3>
@@ -638,16 +700,112 @@ const TEMAS = [
   { id:"gris_acero",       nombre:"🔘 Gris Acero",         colores:["#383d42","#4f555c","#5b9bd5"] }
 ];
 
+let paletaPersonalizadaGuardada = null; // {modo, base:{...}, avanzado:{...}, resueltos:{...}}
+let modoPersonalizacion = "basico";
+
+// ── UTILIDADES DE COLOR (para el personalizador de temas) ────
+function hexARgb(hex) {
+  hex = (hex||"#000000").replace("#","");
+  if (hex.length===3) hex = hex.split("").map(c=>c+c).join("");
+  const n = parseInt(hex,16);
+  return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+}
+function rgbAHex(r,g,b) {
+  const c = v => Math.max(0,Math.min(255,Math.round(v))).toString(16).padStart(2,"0");
+  return "#"+c(r)+c(g)+c(b);
+}
+function mezclarColores(hex1, hex2, ratio) {
+  // ratio=0 -> hex1 puro, ratio=1 -> hex2 puro
+  const a = hexARgb(hex1), b = hexARgb(hex2);
+  return rgbAHex(
+    a.r+(b.r-a.r)*ratio,
+    a.g+(b.g-a.g)*ratio,
+    a.b+(b.b-a.b)*ratio
+  );
+}
+function luminanciaHex(hex) {
+  const {r,g,b} = hexARgb(hex);
+  const ch = c => { c=c/255; return c<=0.03928 ? c/12.92 : Math.pow((c+0.055)/1.055,2.4); };
+  return 0.2126*ch(r)+0.7152*ch(g)+0.0722*ch(b);
+}
+function esClaro(hex) { return luminanciaHex(hex) > 0.5; }
+function textoLegibleSobre(hex) { return esClaro(hex) ? "#141414" : "#ffffff"; }
+
+// Paletas semánticas fijas (pagado/pendiente/deuda/enviado/info), una para fondos
+// claros y otra para fondos oscuros, usadas cuando el usuario no las personaliza.
+const SEMANTICA_CLARA = { green:"#1a7a3a", green_bg:"#e6f4ea", amber:"#8a6d00", amber_bg:"#fff6d6", red:"#b91c1c", red_bg:"#fbe4e4", purple:"#5b21b6", purple_bg:"#ece4fb", blue2:"#1e40af", blue2_bg:"#e2e9fb" };
+const SEMANTICA_OSCURA = { green:"#63c887", green_bg:"#16301f", amber:"#f2c14e", amber_bg:"#2a2515", red:"#ff7b72", red_bg:"#331c1a", purple:"#b8a5f0", purple_bg:"#241f36", blue2:"#7cb8f0", blue2_bg:"#16222e" };
+
+// Construye la paleta COMPLETA (todas las variables CSS) a partir de solo 4 colores base.
+function resolverPaletaBasica(bg, surface, text, accent) {
+  const claro = esClaro(bg);
+  const semantica = claro ? SEMANTICA_CLARA : SEMANTICA_OSCURA;
+  const surface2 = mezclarColores(surface, bg, 0.35);
+  const muted = mezclarColores(text, surface, 0.45);
+  const border = mezclarColores(surface, text, claro?0.18:0.25);
+  const accentText = textoLegibleSobre(accent);
+  return {
+    bg, surface, surface2, border, text, muted,
+    accent, "accent-text":accentText, "accent-dim":mezclarColores(accent,bg,0.5), "accent-bg":mezclarColores(accent,surface,0.85),
+    "hover-bg":mezclarColores(surface2, text, 0.06),
+    "topbar-bg":surface, "navbar-bg":surface, "topbar-text":accent, "navbar-active-text":accent, "navbar-text":muted,
+    green:semantica.green, "green-bg":semantica.green_bg,
+    amber:semantica.amber, "amber-bg":semantica.amber_bg,
+    red:semantica.red, "red-bg":semantica.red_bg,
+    purple:semantica.purple, "purple-bg":semantica.purple_bg,
+    blue2:semantica.blue2, "blue2-bg":semantica.blue2_bg,
+    gray:muted, "gray-bg":surface2,
+    shadow: claro ? "0 1px 2px rgba(0,0,0,.1)" : "0 1px 2px rgba(0,0,0,.4)",
+    "shadow-md": claro ? "0 8px 24px rgba(0,0,0,.15)" : "0 8px 24px rgba(0,0,0,.5)"
+  };
+}
+
+// Construye la paleta completa a partir de los ~20 valores del modo avanzado.
+// Solo faltan por derivar los fondos "pill" (-bg) de cada color de estado.
+function resolverPaletaAvanzada(v) {
+  const claro = esClaro(v.bg);
+  return {
+    bg:v.bg, surface:v.surface, surface2:v.surface2, border:v.border, text:v.text, muted:v.muted,
+    accent:v.accent, "accent-text":v["accent-text"], "accent-dim":mezclarColores(v.accent,v.bg,0.5), "accent-bg":mezclarColores(v.accent,v.surface,0.85),
+    "hover-bg":mezclarColores(v.surface2, v.text, 0.06),
+    "topbar-bg":v["topbar-bg"], "navbar-bg":v["navbar-bg"], "topbar-text":v["topbar-text"],
+    "navbar-active-text":v["navbar-active-text"], "navbar-text":v["navbar-text"],
+    green:v.green, "green-bg":mezclarColores(v.green, v.surface, 0.85),
+    amber:v.amber, "amber-bg":mezclarColores(v.amber, v.surface, 0.85),
+    red:v.red, "red-bg":mezclarColores(v.red, v.surface, 0.85),
+    purple:v.purple, "purple-bg":mezclarColores(v.purple, v.surface, 0.85),
+    blue2:v.blue2, "blue2-bg":mezclarColores(v.blue2, v.surface, 0.85),
+    gray:v.muted, "gray-bg":v.surface2,
+    shadow: claro ? "0 1px 2px rgba(0,0,0,.1)" : "0 1px 2px rgba(0,0,0,.4)",
+    "shadow-md": claro ? "0 8px 24px rgba(0,0,0,.15)" : "0 8px 24px rgba(0,0,0,.5)"
+  };
+}
+
+function aplicarPaletaPersonalizada(resueltos) {
+  document.body.setAttribute("data-theme","personalizado");
+  Object.keys(resueltos).forEach(k => document.body.style.setProperty("--"+k, resueltos[k]));
+}
+
 function aplicarTema(tema) {
   temaActual = tema || "estadio_nocturno";
-  document.body.setAttribute("data-theme", temaActual);
+  // Limpiar cualquier variable inline que hubiera puesto un tema personalizado anterior
+  document.body.style.cssText = "";
+  if (temaActual === "personalizado" && paletaPersonalizadaGuardada && paletaPersonalizadaGuardada.resueltos) {
+    aplicarPaletaPersonalizada(paletaPersonalizadaGuardada.resueltos);
+  } else {
+    document.body.setAttribute("data-theme", temaActual);
+  }
   renderTemaSelector();
 }
 
 function renderTemaSelector() {
   const cont = document.getElementById("tema-selector");
   if (!cont) return;
-  cont.innerHTML = TEMAS.map(t => `
+  const coloresPersonalizado = (paletaPersonalizadaGuardada && paletaPersonalizadaGuardada.resueltos)
+    ? [paletaPersonalizadaGuardada.resueltos.bg, paletaPersonalizadaGuardada.resueltos.surface2, paletaPersonalizadaGuardada.resueltos.accent]
+    : ["#888888","#aaaaaa","#cccccc"];
+
+  const swatchesFijos = TEMAS.map(t => `
     <div class="tema-swatch ${t.id===temaActual?'selected':''}" onclick="cambiarTema('${t.id}')">
       <div class="tema-swatch-preview">
         <span style="background:${t.colores[0]};"></span>
@@ -656,6 +814,27 @@ function renderTemaSelector() {
       </div>
       <div class="tema-swatch-nombre">${t.nombre}</div>
     </div>`).join("");
+
+  const swatchPersonalizado = `
+    <div class="tema-swatch ${temaActual==='personalizado'?'selected':''}" style="position:relative;" onclick="clickPersonalizado()">
+      <div class="tema-swatch-preview">
+        <span style="background:${coloresPersonalizado[0]};"></span>
+        <span style="background:${coloresPersonalizado[1]};"></span>
+        <span style="background:${coloresPersonalizado[2]};"></span>
+      </div>
+      <div class="tema-swatch-nombre">🎨 Personalizado</div>
+      <button onclick="event.stopPropagation();abrirPersonalizador()" style="position:absolute;top:6px;right:6px;background:rgba(0,0,0,.35);border:none;color:#fff;border-radius:4px;font-size:11px;padding:2px 5px;cursor:pointer;" title="Editar">✏️</button>
+    </div>`;
+
+  cont.innerHTML = swatchesFijos + swatchPersonalizado;
+}
+
+function clickPersonalizado() {
+  if (paletaPersonalizadaGuardada && paletaPersonalizadaGuardada.resueltos) {
+    cambiarTema("personalizado");
+  } else {
+    abrirPersonalizador();
+  }
 }
 
 async function cambiarTema(tema) {
@@ -669,10 +848,87 @@ async function cambiarTema(tema) {
 
 async function cargarYAplicarTema(usuario) {
   try {
-    const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?usuario=eq.${encodeURIComponent(usuario)}&select=tema`,{headers:SB});
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/usuarios?usuario=eq.${encodeURIComponent(usuario)}&select=tema,tema_personalizado`,{headers:SB});
     const data = await res.json();
+    paletaPersonalizadaGuardada = (data && data[0] && data[0].tema_personalizado) ? data[0].tema_personalizado : null;
     aplicarTema(data && data[0] && data[0].tema ? data[0].tema : "estadio_nocturno");
   } catch(e) { aplicarTema("estadio_nocturno"); }
+}
+
+function abrirPersonalizador() {
+  const panel = document.getElementById("personalizador-panel");
+  if (!panel) return;
+  panel.classList.add("open");
+
+  // Prellenar con la paleta guardada (si existe) o con valores por defecto ya puestos en el HTML
+  if (paletaPersonalizadaGuardada) {
+    const modo = paletaPersonalizadaGuardada.modo || "basico";
+    if (modo === "basico" && paletaPersonalizadaGuardada.base) {
+      const b = paletaPersonalizadaGuardada.base;
+      if (document.getElementById("pers-bas-bg")) document.getElementById("pers-bas-bg").value = b.bg;
+      if (document.getElementById("pers-bas-surface")) document.getElementById("pers-bas-surface").value = b.surface;
+      if (document.getElementById("pers-bas-text")) document.getElementById("pers-bas-text").value = b.text;
+      if (document.getElementById("pers-bas-accent")) document.getElementById("pers-bas-accent").value = b.accent;
+    } else if (modo === "avanzado" && paletaPersonalizadaGuardada.avanzado) {
+      Object.keys(paletaPersonalizadaGuardada.avanzado).forEach(k => {
+        const el = document.getElementById("pers-adv-"+k);
+        if (el) el.value = paletaPersonalizadaGuardada.avanzado[k];
+      });
+    }
+    cambiarModoPersonalizacion(modo);
+  } else {
+    cambiarModoPersonalizacion("basico");
+  }
+
+  panel.scrollIntoView({behavior:"smooth", block:"nearest"});
+}
+
+function cerrarPersonalizador() {
+  const panel = document.getElementById("personalizador-panel");
+  if (panel) panel.classList.remove("open");
+}
+
+function cambiarModoPersonalizacion(modo) {
+  modoPersonalizacion = modo;
+  document.getElementById("personalizador-basico").style.display = modo==="basico" ? "block" : "none";
+  document.getElementById("personalizador-avanzado").style.display = modo==="avanzado" ? "block" : "none";
+  document.getElementById("modo-basico-btn").classList.toggle("btn-primary", modo==="basico");
+  document.getElementById("modo-basico-btn").classList.toggle("btn-secondary", modo!=="basico");
+  document.getElementById("modo-avanzado-btn").classList.toggle("btn-primary", modo==="avanzado");
+  document.getElementById("modo-avanzado-btn").classList.toggle("btn-secondary", modo!=="avanzado");
+}
+
+async function guardarPersonalizado() {
+  let resueltos, payload;
+
+  if (modoPersonalizacion === "basico") {
+    const bg = document.getElementById("pers-bas-bg").value;
+    const surface = document.getElementById("pers-bas-surface").value;
+    const text = document.getElementById("pers-bas-text").value;
+    const accent = document.getElementById("pers-bas-accent").value;
+    resueltos = resolverPaletaBasica(bg, surface, text, accent);
+    payload = { modo:"basico", base:{bg,surface,text,accent}, resueltos };
+  } else {
+    const campos = ["bg","surface","surface2","border","text","muted","accent","accent-text",
+      "topbar-bg","topbar-text","navbar-bg","navbar-active-text","navbar-text",
+      "green","amber","red","purple","blue2"];
+    const valores = {};
+    campos.forEach(k => { valores[k] = document.getElementById("pers-adv-"+k).value; });
+    resueltos = resolverPaletaAvanzada(valores);
+    payload = { modo:"avanzado", avanzado:valores, resueltos };
+  }
+
+  paletaPersonalizadaGuardada = payload;
+  aplicarTema("personalizado"); // aplicar al instante
+
+  const usuario = sessionStorage.getItem(SESSION_KEY);
+  if (usuario) {
+    try {
+      await sbPatch("usuarios", `usuario=eq.${encodeURIComponent(usuario)}`, { tema:"personalizado", tema_personalizado: payload });
+    } catch(e) { showToast("No se pudo guardar: "+e.message); }
+  }
+  showToast("Tema personalizado guardado ✓");
+  cerrarPersonalizador();
 }
 
 // ── AUTH ────────────────────────────────────────────────────
