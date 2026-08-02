@@ -262,6 +262,8 @@ body.hide-finanzas .table-header-row span:nth-child(7){display:none;}
 .item-block-title{font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;margin-bottom:10px;}
 .remove-item-btn{position:absolute;top:10px;right:10px;background:transparent;border:none;color:var(--muted);font-size:20px;cursor:pointer;line-height:1;padding:2px;}
 .remove-item-btn:hover{color:var(--red);}
+.duplicate-item-btn{position:absolute;top:10px;right:38px;background:transparent;border:none;color:var(--muted);font-size:14px;cursor:pointer;line-height:1;padding:2px;}
+.duplicate-item-btn:hover{color:var(--accent);}
 .add-item-btn{display:flex;align-items:center;gap:6px;padding:9px 14px;border:1px dashed var(--accent-dim);border-radius:var(--radius);background:transparent;color:var(--accent);font-size:13px;font-weight:600;cursor:pointer;width:100%;justify-content:center;transition:all .15s;margin-top:4px;}
 .add-item-btn:hover{border-color:var(--accent);background:var(--accent-bg);}
 
@@ -371,7 +373,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.3.7</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.3.8</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -382,7 +384,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.3.7</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.3.8</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -1090,6 +1092,7 @@ function addItemBlock(containerId, priceDisplayId, tipo) {
   if (t === "conjunto") {
     div.innerHTML = `
       <div class="item-block-title">Producto #${n}</div>
+      <button class="duplicate-item-btn" data-container="${containerId}" data-preciodisplay="${priceDisplayId}" data-tipo="${t}" onclick="duplicarItemBlock(this)" title="Duplicar">📋</button>
       <button class="remove-item-btn" onclick="${removeCall}" title="Eliminar">×</button>
       <div class="form-grid-3">
         <div class="fg full" style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -1109,6 +1112,7 @@ function addItemBlock(containerId, priceDisplayId, tipo) {
   } else {
     div.innerHTML = `
       <div class="item-block-title">Producto #${n}</div>
+      <button class="duplicate-item-btn" data-container="${containerId}" data-preciodisplay="${priceDisplayId}" data-tipo="${t}" onclick="duplicarItemBlock(this)" title="Duplicar">📋</button>
       <button class="remove-item-btn" onclick="${removeCall}" title="Eliminar">×</button>
       <div class="form-grid-3">
         <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" class="i-item" placeholder="Ej. Granada CF Local 24/25" maxlength="100" list="productos-datalist"></div>
@@ -1140,6 +1144,49 @@ function recalcTotal(displayId, containerId) {
     if (numItems < 5) total += 5; // gastos de envio
   }
   document.getElementById(displayId).textContent = total.toFixed(2)+" €";
+}
+
+// Duplica un producto ya rellenado dentro del mismo formulario, para no
+// tener que volver a escribir todos los campos si vas a añadir uno parecido.
+function duplicarItemBlock(btn) {
+  const bloqueOrigen = btn.closest(".item-block");
+  if (!bloqueOrigen) return;
+  const containerId = btn.dataset.container;
+  const priceDisplayId = btn.dataset.preciodisplay;
+  const tipo = btn.dataset.tipo;
+
+  const leer = sel => bloqueOrigen.querySelector(sel)?.value || "";
+  const valores = {
+    persona: leer(".i-persona"),
+    item: leer(".i-item"),
+    version: leer(".i-version"),
+    talla: leer(".i-talla"),
+    nombren: leer(".i-nombren"),
+    parche: leer(".i-parche"),
+    precio: leer(".i-precio"),
+    loquepago: leer(".i-loquepago"),
+    pagadoItem: leer(".i-pagado-item") || "No"
+  };
+
+  addItemBlock(containerId, priceDisplayId, tipo);
+
+  const cont = document.getElementById(containerId);
+  const bloqueNuevo = cont.lastElementChild;
+  if (!bloqueNuevo) return;
+
+  const escribir = (sel, val) => { const el = bloqueNuevo.querySelector(sel); if (el) el.value = val; };
+  escribir(".i-persona", valores.persona);
+  escribir(".i-item", valores.item);
+  escribir(".i-version", valores.version);
+  escribir(".i-talla", valores.talla);
+  escribir(".i-nombren", valores.nombren);
+  escribir(".i-parche", valores.parche);
+  escribir(".i-precio", valores.precio);
+  escribir(".i-loquepago", valores.loquepago);
+  escribir(".i-pagado-item", valores.pagadoItem);
+
+  recalcTotal(priceDisplayId, containerId);
+  showToast("Producto duplicado ✓");
 }
 
 function uc(s){return (s||"").trim().toUpperCase();}
@@ -1664,6 +1711,7 @@ function abrirEditar(id) {
     if (tipo==="conjunto") {
       div.innerHTML=`
         <div class="item-block-title">Producto #${n}</div>
+        <button class="duplicate-item-btn" data-container="e-items-container" data-preciodisplay="e-precio-display" data-tipo="conjunto" onclick="duplicarItemBlock(this)" title="Duplicar">📋</button>
         <button class="remove-item-btn" onclick="${removeCall}" title="Eliminar">×</button>
         <div class="form-grid-3">
           <div class="fg full" style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
@@ -1681,6 +1729,7 @@ function abrirEditar(id) {
     } else {
       div.innerHTML=`
         <div class="item-block-title">Producto #${n}</div>
+        <button class="duplicate-item-btn" data-container="e-items-container" data-preciodisplay="e-precio-display" data-tipo="simple" onclick="duplicarItemBlock(this)" title="Duplicar">📋</button>
         <button class="remove-item-btn" onclick="${removeCall}" title="Eliminar">×</button>
         <div class="form-grid-3">
           <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" class="i-item" value="${san(it.item||"")}" maxlength="100" list="productos-datalist"></div>
