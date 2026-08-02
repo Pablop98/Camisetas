@@ -376,7 +376,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.4.2</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.4.3</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -387,7 +387,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.4.2</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.4.3</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -1372,7 +1372,7 @@ function renderPedidos() {
             <button class="btn-detail btn-add-product" onclick="toggleInlineAdd('${sid}',true)">＋ Producto</button>
             <button class="btn-detail btn-entregado" onclick="marcarEntregado('${p.id}')">✓ Entregado</button>
             <button class="btn-detail btn-del" onclick="eliminarPedido('${p.id}')">🗑 Borrar</button>
-            <button class="btn-detail btn-secondary" onclick="generarWordPedido('${p.id}')" title="Descargar Word directamente">📄⬇️ Word</button><button class="btn-detail btn-secondary" onclick="abrirEditorWord('${p.id}')" title="Ver y editar antes de descargar">📄✏️ Editar</button>
+            <button class="btn-detail btn-secondary" onclick="generarWordPedido('${p.id}')" title="Descargar Word directamente">📄⬇️ Word</button><button class="btn-detail btn-secondary" onclick="abrirEditorWord('${p.id}')" title="Ver y editar antes de descargar">📄✏️ Editar Word/PDF</button>
             ${(p.notas||"").split("\n").filter(x=>x.trim()).map(n=>`<span class="tracking-num" onclick="copiarTracking(this.textContent.replace(' 📋','').trim(),event)" title="Click para copiar">${san(n.trim())}</span>`).join("")}
           </div>
           <button class="btn-detail btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="togglePagoCol(this)">👁 Ocultar Pago</button>
@@ -1394,7 +1394,7 @@ function renderPedidos() {
           <button class="btn-detail btn-add-product" onclick="toggleInlineAdd('${sid}')">＋ Producto</button>
           <button class="btn-detail btn-entregado" onclick="marcarEntregado('${p.id}')">✓ Entregado</button>
           <button class="btn-detail btn-del" onclick="eliminarPedido('${p.id}')">🗑 Borrar</button>
-          <button class="btn-detail btn-secondary" onclick="generarWordPedido('${p.id}')" title="Descargar Word directamente">📄⬇️ Word</button><button class="btn-detail btn-secondary" onclick="abrirEditorWord('${p.id}')" title="Ver y editar antes de descargar">📄✏️ Editar</button>
+          <button class="btn-detail btn-secondary" onclick="generarWordPedido('${p.id}')" title="Descargar Word directamente">📄⬇️ Word</button><button class="btn-detail btn-secondary" onclick="abrirEditorWord('${p.id}')" title="Ver y editar antes de descargar">📄✏️ Editar Word/PDF</button>
           <div class="tracking-area" style="flex-wrap:wrap;">
             <div id="tracking-nums-${sid}" style="display:flex;flex-wrap:wrap;gap:4px;">${(p.notas||"").split("\n").filter(x=>x.trim()).map(n=>`<span class="tracking-num" onclick="copiarTracking(this.textContent.replace(' 📋','').trim(),event)" title="Click para copiar">${san(n.trim())}</span>`).join("")}</div>
             <div class="tracking-input-wrap" id="ti-${sid}">
@@ -2634,11 +2634,11 @@ async function construirDocumentoHtml(pedidoId) {
   bodyHtml += SALTO + SALTO;
   bodyHtml += '<p style="'+FUENTE+'font-size:11pt;margin:0;line-height:1.6;">';
   bodyHtml += 'Destinatario: <br>';
-  bodyHtml += 'Provincia/Estado:<br>';
-  bodyHtml += 'Ciudad:<br>';
+  bodyHtml += 'Provincia/Estado: <br>';
+  bodyHtml += 'Ciudad: <br>';
   bodyHtml += 'Dirección: <br>';
   bodyHtml += 'Código postal: <br>';
-  bodyHtml += 'Teléfono:';
+  bodyHtml += 'Teléfono: ';
   bodyHtml += '</p>';
 
   return { titulo, bodyHtml };
@@ -2693,12 +2693,29 @@ function descargarWordDesdeEditor() {
 }
 
 // Descarga la imagen y la convierte a dataURL para poder incrustarla en el PDF.
-// Si el servidor de la foto no permite acceso externo (CORS), devuelve null
-// y esa foto en concreto se omite del PDF (el resto del documento sigue bien).
+// Algunos servidores de fotos no permiten que una web externa "lea" sus imágenes
+// (una restricción de seguridad del navegador, no de esta app). Si el intento
+// directo falla, probamos con un servicio intermediario que sí lo permite.
+async function descargarComoBlob(url) {
+  const resp = await fetch(url, { mode: "cors" });
+  if (!resp.ok) throw new Error("HTTP "+resp.status);
+  return await resp.blob();
+}
+
 async function obtenerDataUrlImagen(url) {
+  let blob = null;
   try {
-    const resp = await fetch(url, { mode: "cors" });
-    const blob = await resp.blob();
+    blob = await descargarComoBlob(url);
+  } catch(e) {
+    // Intento 2: a través de un proxy de imágenes que añade el permiso que falta
+    try {
+      const urlSinProtocolo = url.replace(/^https?:\/\//, "");
+      const urlProxy = "https://images.weserv.nl/?url=" + encodeURIComponent(urlSinProtocolo);
+      blob = await descargarComoBlob(urlProxy);
+    } catch(e2) { return null; }
+  }
+  if (!blob) return null;
+  try {
     return await new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(reader.result);
@@ -2821,7 +2838,7 @@ async function descargarPdfDesdeEditor() {
           y += 4; // párrafo vacío = espacio en blanco
         } else {
           // El bloque de dirección tiene <br> internos: una línea por cada uno
-          const lineas = nodo.innerHTML.split(/<br\s*\/?>/i).map(l => l.replace(/<[^>]+>/g,"").replace(/&nbsp;/g," ").trim());
+          const lineas = nodo.innerHTML.split(/<br\s*\/?>/i).map(l => l.replace(/<[^>]+>/g,"").replace(/&nbsp;/g," ").replace(/^\s+/,"").replace(/\n/g,""));
           doc.setFontSize(11);
           lineas.forEach(linea => {
             if (!linea) return;
