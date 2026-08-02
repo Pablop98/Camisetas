@@ -370,7 +370,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.3.3</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.3.4</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -381,7 +381,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.3.3</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.3.4</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -2446,7 +2446,17 @@ async function guardarTracking(pedidoId, sid) {
 // Genera un documento Word (.doc) del pedido con la misma estructura que la plantilla:
 // por cada producto, un hueco marcado con el nombre para pegar la foto manualmente,
 // seguido de una tabla con Version/Talla/Nombre y Numero/Parche.
-function generarWordPedido(pedidoId) {
+// Mide el ancho/alto real de una imagen (funciona también con URLs externas)
+function medirImagen(url) {
+  return new Promise(resolve => {
+    const img = new Image();
+    img.onload = () => resolve({w: img.naturalWidth, h: img.naturalHeight});
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+async function generarWordPedido(pedidoId) {
   const p = pedidos.find(x=>x.id===pedidoId);
   if (!p) { showToast("No se encontró el pedido"); return; }
   const items = p._items||[];
@@ -2487,9 +2497,12 @@ function generarWordPedido(pedidoId) {
     grupo.filas.sort(function(a,b){ return posicionTalla(a.talla) - posicionTalla(b.talla); });
   });
 
+  const ANCHO_FOTO = 480; // ancho fijo en píxeles para todas las fotos del documento
+
   let bodyHtml = "";
 
-  grupos.forEach(function(grupo, idx){
+  for (let idx=0; idx<grupos.length; idx++) {
+    const grupo = grupos[idx];
     const nombreImg = san(grupo.nombre.toString().toUpperCase());
 
     // Línea horizontal separadora entre grupos de producto (no antes del primero)
@@ -2504,10 +2517,14 @@ function generarWordPedido(pedidoId) {
     const productoCatalogo = productos.find(pr => normNombre(pr.nombre) === claveGrupo && pr.imagen_url);
 
     if (productoCatalogo) {
-      // Ya tenemos la foto guardada: se incluye directamente, sin hueco que rellenar
+      // Medimos la foto real para fijar ancho Y alto exactos: así Word no puede
+      // "decidir" mostrarla a su tamaño original (le pasa con imágenes por URL).
+      const medida = await medirImagen(productoCatalogo.imagen_url);
+      const altoFoto = medida ? Math.round(ANCHO_FOTO * (medida.h/medida.w)) : 600;
+
       bodyHtml += '<table style="width:100%;max-width:480px;border-collapse:collapse;"><tr>';
       bodyHtml += '<td align="center" style="'+FUENTE+'">';
-      bodyHtml += '<img src="'+san(productoCatalogo.imagen_url)+'" alt="'+nombreImg+'" width="480" style="width:480px;">';
+      bodyHtml += '<img src="'+san(productoCatalogo.imagen_url)+'" alt="'+nombreImg+'" width="'+ANCHO_FOTO+'" height="'+altoFoto+'" style="width:'+ANCHO_FOTO+'px;height:'+altoFoto+'px;">';
       bodyHtml += '</td></tr></table>';
     } else {
       // Hueco donde pegar la foto manualmente, con el nombre del producto como referencia
@@ -2539,7 +2556,7 @@ function generarWordPedido(pedidoId) {
       bodyHtml += '</tr>';
     });
     bodyHtml += '</table>';
-  });
+  }
 
   // Bloque de dirección en blanco al final, listo para rellenar y mandar al proveedor
   bodyHtml += SALTO + SALTO;
