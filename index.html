@@ -370,7 +370,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.3.0</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.3.1</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -381,7 +381,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.3.0</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.3.1</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁</button>
@@ -395,6 +395,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
     <button onclick="showSection('resumen',this)">Resumen</button>
     <button onclick="showSection('morosos',this)">💸 Morosos</button>
     <button onclick="showSection('clientes',this)">👥 Clientes</button>
+    <button onclick="showSection('productos',this)">📦 Productos</button>
     <button onclick="showSection('ajustes',this)">Ajustes</button>
   </div>
   <main>
@@ -552,6 +553,31 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
       </div>
     </section>
 
+    <!-- PRODUCTOS -->
+    <section id="s-productos" class="section">
+      <div class="filter-bar">
+        <input type="text" id="productos-search" placeholder="Buscar producto..." oninput="renderProductos()">
+        <button class="btn btn-primary" style="white-space:nowrap;" onclick="toggleNuevoProductoPanel()">＋ Nuevo producto</button>
+      </div>
+      <div class="inline-add-panel" id="nuevo-producto-panel">
+        <div style="font-size:13px;font-weight:700;color:var(--accent);margin-bottom:10px;">Registrar producto</div>
+        <div class="form-grid">
+          <div class="fg"><label>Nombre *</label><input type="text" id="np-nombre" maxlength="100" placeholder="Ej. Real Madrid 26/27"></div>
+          <div class="fg"><label>URL de la imagen</label><input type="text" id="np-imagen-url" maxlength="500" placeholder="https://..."></div>
+        </div>
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn btn-primary" style="padding:7px 16px;font-size:13px;" onclick="guardarNuevoProducto()">Guardar producto</button>
+          <button class="btn btn-secondary" style="padding:7px 16px;font-size:13px;" onclick="toggleNuevoProductoPanel()">Cancelar</button>
+        </div>
+      </div>
+      <div class="table-wrap">
+        <div style="display:grid;grid-template-columns:60px 1fr 50px;padding:9px 14px;background:var(--surface2);border-bottom:1px solid var(--border);font-size:10px;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;">
+          <span>Foto</span><span>Producto</span><span></span>
+        </div>
+        <div id="productos-list"></div>
+      </div>
+    </section>
+
     <!-- AJUSTES -->
     <section id="s-ajustes" class="section">
       <div class="form-card">
@@ -677,6 +703,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
 </div>
 
 <datalist id="clientes-datalist"></datalist>
+<datalist id="productos-datalist"></datalist>
 <div class="toast" id="toast"></div>
 
 <!-- inline add product panel replaces the modal -->
@@ -688,7 +715,7 @@ const SB = { "Content-Type":"application/json","apikey":SUPABASE_KEY,"Authorizat
 const SESSION_KEY = "ped_session";
 const ESTADO_ORDER = ["Pendiente de pedido","Pedido","Enviado","Entregado"];
 
-let pedidos = [], allItems = [], clientes = [], itemCounter = 0, tipoActual = "simple";
+let pedidos = [], allItems = [], clientes = [], productos = [], itemCounter = 0, tipoActual = "simple";
 let temaActual = "estadio_nocturno";
 
 // ── TEMAS ───────────────────────────────────────────────────
@@ -988,11 +1015,20 @@ async function cargarDatos() {
 
   document.getElementById("conn-status").textContent="⏳ Cargando...";
   try {
-    const [peds,its,clis] = await Promise.all([sbGet("pedidos","order=created_at.desc"),sbGet("items","order=posicion.asc,created_at.asc"),sbGet("clientes","order=nombre.asc")]);
-    pedidos=peds; allItems=its; clientes=clis;
+    const usuarioActual = sessionStorage.getItem(SESSION_KEY) || "";
+    const filtroPropio = "propietario=eq."+encodeURIComponent(usuarioActual);
+    const [peds,its,clis,prods] = await Promise.all([
+      sbGet("pedidos", filtroPropio+"&order=created_at.desc"),
+      sbGet("items", filtroPropio+"&order=posicion.asc,created_at.asc"),
+      sbGet("clientes","order=nombre.asc"), // los clientes se comparten entre todos los usuarios
+      sbGet("catalogo_productos","order=nombre.asc") // el catálogo también se comparte
+    ]);
+    pedidos=peds; allItems=its; clientes=clis; productos=prods;
     // Rellenar datalist de autocompletado
     const dl = document.getElementById("clientes-datalist");
     if (dl) dl.innerHTML = clientes.map(cl=>'<option value="'+san(cl.nombre)+'">').join("");
+    const dlp = document.getElementById("productos-datalist");
+    if (dlp) dlp.innerHTML = productos.map(pr=>'<option value="'+san(pr.nombre)+'">').join("");
     pedidos.forEach(p=>{p._items=allItems.filter(i=>i.pedido_id===p.id);});
     document.getElementById("conn-status").textContent="✅ "+pedidos.length+" pedidos";
     document.getElementById("config-status").textContent="✅ Conectado · "+pedidos.length+" pedidos";
@@ -1059,7 +1095,7 @@ function addItemBlock(containerId, priceDisplayId, tipo) {
       <div class="form-grid-3">
         <div class="fg full" style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
           <div class="fg"><label>Nombre persona</label><input type="text" class="i-persona" placeholder="Ej. Carlos" maxlength="80" list="clientes-datalist"></div>
-          <div class="fg"><label>Item</label><input type="text" class="i-item" placeholder="Ej. Granada CF Local" maxlength="100"></div>
+          <div class="fg"><label>Item</label><input type="text" class="i-item" placeholder="Ej. Granada CF Local" maxlength="100" list="productos-datalist"></div>
         </div>
         <div class="fg"><label>Versión</label>
           <select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select>
@@ -1076,7 +1112,7 @@ function addItemBlock(containerId, priceDisplayId, tipo) {
       <div class="item-block-title">Producto #${n}</div>
       <button class="remove-item-btn" onclick="${removeCall}" title="Eliminar">×</button>
       <div class="form-grid-3">
-        <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" class="i-item" placeholder="Ej. Granada CF Local 24/25" maxlength="100"></div>
+        <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" class="i-item" placeholder="Ej. Granada CF Local 24/25" maxlength="100" list="productos-datalist"></div>
         <div class="fg"><label>Versión</label>
           <select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select>
         </div>
@@ -1199,7 +1235,7 @@ function renderPedidos() {
           <div class="form-grid-3">
             <div class="fg full" style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
               <div class="fg"><label>Nombre persona</label><input type="text" id="ie-persona-${it.id}" value="${san(it.nombre_persona||'')}" maxlength="80"></div>
-              <div class="fg"><label>Item</label><input type="text" id="ie-item-${it.id}" value="${san(it.item||'')}" maxlength="100"></div>
+              <div class="fg"><label>Item</label><input type="text" id="ie-item-${it.id}" value="${san(it.item||'')}" maxlength="100" list="productos-datalist"></div>
             </div>
             <div class="fg"><label>Versión</label><select id="ie-version-${it.id}"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select></div>
             <div class="fg"><label>Talla</label><input type="text" id="ie-talla-${it.id}" value="${san(it.talla||'')}" maxlength="20"></div>
@@ -1233,7 +1269,7 @@ function renderPedidos() {
         <div class="item-edit-popup open" id="item-edit-popup-${it.id}">
           <div style="font-size:12px;font-weight:700;color:var(--accent);margin-bottom:8px;">Editar producto</div>
           <div class="form-grid-3">
-            <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" id="ie-item-${it.id}" value="${san(it.item||'')}" maxlength="100"></div>
+            <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" id="ie-item-${it.id}" value="${san(it.item||'')}" maxlength="100" list="productos-datalist"></div>
             <div class="fg"><label>Versión</label><select id="ie-version-${it.id}"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select></div>
             <div class="fg"><label>Talla</label><input type="text" id="ie-talla-${it.id}" value="${san(it.talla||'')}" maxlength="20"></div>
             <div class="fg"><label>Nombre y número</label><input type="text" id="ie-nombren-${it.id}" value="${san(it.nombre_numero||'')}" maxlength="80"></div>
@@ -1569,6 +1605,7 @@ async function guardarPedido() {
     if (items.length < 5) precioTotal += 5; // gastos de envio
   }
   const id = "PED-"+Date.now();
+  const usuarioActual = sessionStorage.getItem(SESSION_KEY) || "";
   try {
     await sbPost("pedidos",[{
       id, tipo: tipoActual,
@@ -1578,9 +1615,10 @@ async function guardarPedido() {
       estado: v("f-estado-new",30)||"Pendiente de pedido",
       precio_total: precioTotal,
       pagado: v("f-pagado",5)||"No",
-      notas: v("f-notas",300)
+      notas: v("f-notas",300),
+      propietario: usuarioActual
     }]);
-    if (items.length>0) await sbPost("items",items.map((it,i)=>({...it,pedido_id:id,posicion:i})));
+    if (items.length>0) await sbPost("items",items.map((it,i)=>({...it,pedido_id:id,posicion:i,propietario:usuarioActual})));
     showToast("Pedido guardado ✓");
     // Registro automático de clientes nuevos
     const nombresUsados = tipoActual==="conjunto" ? items.map(it=>it.nombre_persona) : [nombre];
@@ -1633,7 +1671,7 @@ function abrirEditar(id) {
         <div class="form-grid-3">
           <div class="fg full" style="grid-column:1/-1;display:grid;grid-template-columns:1fr 1fr;gap:12px;">
             <div class="fg"><label>Nombre persona</label><input type="text" class="i-persona" value="${san(it.nombre_persona||"")}" maxlength="80" list="clientes-datalist"></div>
-            <div class="fg"><label>Item</label><input type="text" class="i-item" value="${san(it.item||"")}" maxlength="100"></div>
+            <div class="fg"><label>Item</label><input type="text" class="i-item" value="${san(it.item||"")}" maxlength="100" list="productos-datalist"></div>
           </div>
           <div class="fg"><label>Versión</label><select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select></div>
           <div class="fg"><label>Talla</label><input type="text" class="i-talla" value="${san(it.talla||"")}" maxlength="20"></div>
@@ -1648,7 +1686,7 @@ function abrirEditar(id) {
         <div class="item-block-title">Producto #${n}</div>
         <button class="remove-item-btn" onclick="${removeCall}" title="Eliminar">×</button>
         <div class="form-grid-3">
-          <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" class="i-item" value="${san(it.item||"")}" maxlength="100"></div>
+          <div class="fg full" style="grid-column:1/-1"><label>Item</label><input type="text" class="i-item" value="${san(it.item||"")}" maxlength="100" list="productos-datalist"></div>
           <div class="fg"><label>Versión</label><select class="i-version"><option value="">—</option><option>Fan</option><option>Player</option><option>Retro</option><option>Kids</option><option>Women</option><option>Conjunto</option><option>Chandal</option><option>Zapatilla</option></select></div>
           <div class="fg"><label>Talla</label><input type="text" class="i-talla" value="${san(it.talla||"")}" maxlength="20"></div>
           <div class="fg"><label>Nombre y número</label><input type="text" class="i-nombren" value="${san(it.nombre_numero||"")}" maxlength="80"></div>
@@ -1687,11 +1725,13 @@ async function actualizarPedido() {
     });
     // Preserve entregado_item and pagado_item from existing items by matching position
     const existingItems = pedidos.find(x=>x.id===id)?._items||[];
+    const usuarioActual = sessionStorage.getItem(SESSION_KEY) || "";
     await sbDelete("items",`pedido_id=eq.${encodeURIComponent(id)}`);
     if (items.length>0) await sbPost("items",items.map((it,i)=>({
       ...it,
       pedido_id:id,
       posicion:i,
+      propietario:usuarioActual,
       pagado_item: it.pagado_item || (existingItems[i]?.pagado_item||"No"),
       entregado_item: it.entregado_item || (existingItems[i]?.entregado_item||"No")
     })));
@@ -1780,6 +1820,7 @@ function showSection(id,btn) {
   if(id==="resumen")renderResumen();
   if(id==="morosos")renderMorosos();
   if(id==="clientes")renderClientes();
+  if(id==="productos")renderProductos();
 }
 
 function toggleItemEdit(itemId, pedidoId, sid) {
@@ -2197,6 +2238,106 @@ async function eliminarCliente(cid) {
   } catch(e) { showToast("Error: "+e.message); }
 }
 
+// ── CATÁLOGO DE PRODUCTOS ────────────────────────────────────
+function renderProductos() {
+  const container = document.getElementById("productos-list");
+  if (!container) return;
+  const search = (document.getElementById("productos-search")?.value||"").toLowerCase();
+  const filtrados = productos.filter(pr => (pr.nombre||"").toLowerCase().includes(search));
+
+  if (!filtrados.length) {
+    container.innerHTML = `<div class="empty"><div class="icon">📦</div>No hay productos registrados</div>`;
+    return;
+  }
+
+  container.innerHTML = filtrados.map(pr => {
+    const miniatura = pr.imagen_url
+      ? `<img src="${san(pr.imagen_url)}" style="width:44px;height:44px;object-fit:cover;border-radius:4px;border:1px solid var(--border);" onerror="this.style.display='none'">`
+      : `<div style="width:44px;height:44px;border-radius:4px;border:1px dashed var(--border);display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--muted);">📷</div>`;
+    return `
+    <div style="display:grid;grid-template-columns:60px 1fr 50px;padding:10px 14px;border-bottom:1px solid var(--border);align-items:center;">
+      <div>${miniatura}</div>
+      <div>
+        <div style="font-weight:600;">${san(pr.nombre)}</div>
+        ${pr.imagen_url ? `<div style="font-size:11px;color:var(--muted);word-break:break-all;">${san(pr.imagen_url)}</div>` : `<div style="font-size:11px;color:var(--muted);">Sin imagen</div>`}
+      </div>
+      <div style="display:flex;gap:4px;">
+        <button class="btn-item-edit" data-pid="${pr.id}" onclick="editarProducto(this.dataset.pid)">✏️</button>
+        <button class="btn-item-del" data-pid="${pr.id}" onclick="eliminarProducto(this.dataset.pid)">🗑</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function toggleNuevoProductoPanel() {
+  const panel = document.getElementById("nuevo-producto-panel");
+  if (!panel) return;
+  const isOpen = panel.classList.toggle("open");
+  if (isOpen) {
+    document.getElementById("np-nombre").focus();
+  } else {
+    document.getElementById("np-nombre").value = "";
+    document.getElementById("np-imagen-url").value = "";
+    delete panel.dataset.editId;
+    panel.querySelector(".btn-primary").textContent = "Guardar producto";
+  }
+}
+
+async function guardarNuevoProducto() {
+  const nombre = (document.getElementById("np-nombre")?.value||"").trim().toUpperCase().slice(0,100);
+  const imagenUrl = (document.getElementById("np-imagen-url")?.value||"").trim().slice(0,500);
+  if (!nombre) { showToast("El nombre es obligatorio"); return; }
+
+  const panel = document.getElementById("nuevo-producto-panel");
+  const editId = panel?.dataset.editId;
+
+  try {
+    if (editId) {
+      await sbPatch("catalogo_productos", "id=eq."+encodeURIComponent(editId), { nombre, imagen_url: imagenUrl });
+      const pr = productos.find(x=>x.id===editId);
+      if (pr) { pr.nombre = nombre; pr.imagen_url = imagenUrl; }
+      showToast("Producto actualizado ✓");
+    } else {
+      const clave = normNombre(nombre);
+      if (productos.some(pr => normNombre(pr.nombre) === clave)) {
+        showToast("Ya existe un producto con ese nombre");
+        return;
+      }
+      const inserted = await sbPost("catalogo_productos", [{ nombre, imagen_url: imagenUrl }]);
+      if (inserted && inserted[0]) productos.push(inserted[0]);
+      showToast("Producto registrado ✓");
+    }
+    const dlp = document.getElementById("productos-datalist");
+    if (dlp) dlp.innerHTML = productos.map(pr=>'<option value="'+san(pr.nombre)+'">').join("");
+    toggleNuevoProductoPanel();
+    renderProductos();
+  } catch(e) { showToast("Error: "+e.message); }
+}
+
+function editarProducto(pid) {
+  const pr = productos.find(x=>x.id===pid);
+  if (!pr) return;
+  const panel = document.getElementById("nuevo-producto-panel");
+  panel.dataset.editId = pid;
+  document.getElementById("np-nombre").value = pr.nombre||"";
+  document.getElementById("np-imagen-url").value = pr.imagen_url||"";
+  panel.querySelector(".btn-primary").textContent = "Guardar cambios";
+  if (!panel.classList.contains("open")) panel.classList.add("open");
+  document.getElementById("np-nombre").focus();
+}
+
+async function eliminarProducto(pid) {
+  if (!confirm("¿Eliminar este producto del catálogo?")) return;
+  try {
+    await sbDelete("catalogo_productos", "id=eq."+encodeURIComponent(pid));
+    productos = productos.filter(x=>x.id!==pid);
+    const dlp = document.getElementById("productos-datalist");
+    if (dlp) dlp.innerHTML = productos.map(pr=>'<option value="'+san(pr.nombre)+'">').join("");
+    renderProductos();
+    showToast("Producto eliminado");
+  } catch(e) { showToast("Error: "+e.message); }
+}
+
 // Registra automáticamente nombres nuevos tras guardar un pedido (con confirmación)
 async function registrarClientesNuevos(nombres) {
   const registrados = new Set(clientes.map(cl=>normNombre(cl.nombre)));
@@ -2364,13 +2505,25 @@ function generarWordPedido(pedidoId) {
       bodyHtml += SALTO;
     }
 
-    // Hueco donde pegar la foto manualmente, con el nombre del producto como referencia
-    // (usamos una tabla con altura fija en vez de flexbox: Word no soporta flexbox)
-    bodyHtml += '<table style="width:100%;max-width:480px;border-collapse:collapse;"><tr>';
-    bodyHtml += '<td height="260" align="center" valign="middle" style="border:2px dashed #999999;background:#ffffff;'+FUENTE+'">';
-    bodyHtml += '<span style="font-size:15pt;font-weight:bold;color:#666666;">📷<br>'+nombreImg+'<br>'+
-                '<span style="font-size:9pt;font-weight:normal;color:#999999;">(pegar foto aquí)</span></span>';
-    bodyHtml += '</td></tr></table>';
+    // Buscar si este producto está en el catálogo con una imagen guardada
+    const claveGrupo = normNombre(grupo.nombre);
+    const productoCatalogo = productos.find(pr => normNombre(pr.nombre) === claveGrupo && pr.imagen_url);
+
+    if (productoCatalogo) {
+      // Ya tenemos la foto guardada: se incluye directamente, sin hueco que rellenar
+      bodyHtml += '<table style="width:100%;max-width:480px;border-collapse:collapse;"><tr>';
+      bodyHtml += '<td align="center" style="'+FUENTE+'">';
+      bodyHtml += '<img src="'+san(productoCatalogo.imagen_url)+'" alt="'+nombreImg+'" style="max-width:480px;max-height:400px;">';
+      bodyHtml += '</td></tr></table>';
+    } else {
+      // Hueco donde pegar la foto manualmente, con el nombre del producto como referencia
+      // (usamos una tabla con altura fija en vez de flexbox: Word no soporta flexbox)
+      bodyHtml += '<table style="width:100%;max-width:480px;border-collapse:collapse;"><tr>';
+      bodyHtml += '<td height="260" align="center" valign="middle" style="border:2px dashed #999999;background:#ffffff;'+FUENTE+'">';
+      bodyHtml += '<span style="font-size:15pt;font-weight:bold;color:#666666;">📷<br>'+nombreImg+'<br>'+
+                  '<span style="font-size:9pt;font-weight:normal;color:#999999;">(pegar foto aquí)</span></span>';
+      bodyHtml += '</td></tr></table>';
+    }
 
     // Salto de línea entre la foto y la tabla de datos
     bodyHtml += SALTO;
