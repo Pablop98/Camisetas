@@ -381,7 +381,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
   <div class="login-box">
     <div class="login-logo">⚽ Vibe coded by pperezmo</div>
     <div class="login-sub">Acceso privado</div>
-    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.4.7</div>
+    <div style="font-size:11px;color:var(--muted);margin-top:-20px;margin-bottom:20px;">v1.5.0</div>
     <div class="lf"><label>Usuario</label><input type="text" id="login-user" autocomplete="username" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <div class="lf"><label>Contraseña</label><input type="password" id="login-pw" autocomplete="current-password" onkeydown="if(event.key==='Enter')doLogin()"></div>
     <button class="login-btn" id="login-btn" onclick="doLogin()">Entrar</button>
@@ -392,7 +392,7 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
 <!-- APP -->
 <div id="app-screen">
   <div class="topbar">
-    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.4.7</span></div>
+    <div class="topbar-title">⚽ Vibe coded by pperezmo <span style="font-size:11px;font-weight:400;opacity:.7;">v1.5.0</span></div>
     <div class="topbar-right">
       <span class="topbar-status" id="conn-status">—</span>
       <button class="topbar-logout" id="btn-toggle-finanzas" onclick="toggleFinanzas()" title="Ocultar/mostrar coste y ganancia">👁 Mostrar C/G</button>
@@ -506,6 +506,10 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
         <div class="stat-card"><div class="slabel">Total facturado</div><div class="svalue" id="st-facturado">—</div><div class="ssub">pagados</div></div>
         <div class="stat-card"><div class="slabel">Falta facturar</div><div class="svalue" id="st-falta">—</div><div class="ssub">no pagados</div></div>
         <div class="stat-card"><div class="slabel">Ganancias</div><div class="svalue" id="st-ganancia">—</div><div class="ssub">facturado − coste</div></div>
+      </div>
+      <div class="form-card">
+        <h3>Ingresos por mes</h3>
+        <div class="chart-bars" id="chart-mensual"></div>
       </div>
       <div class="form-card">
         <h3>Productos por versión</h3>
@@ -729,6 +733,30 @@ input[type="color"]{height:38px;padding:3px;cursor:pointer;}
     </div>
     <div class="info-box" style="margin-bottom:12px;">Toca cualquier texto para editarlo directamente. Para el PDF se abrirá el diálogo de impresión de tu navegador — elige "Guardar como PDF".</div>
     <div id="word-editor-content" contenteditable="true" style="background:#ffffff;color:#000000;padding:20px;border:1px solid var(--border);border-radius:6px;min-height:400px;max-height:65vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- MODAL RECIBO PARA EL CLIENTE -->
+<div class="modal-backdrop" id="modal-recibo" onclick="if(event.target===this)cerrarModalRecibo()">
+  <div class="modal" style="max-width:480px;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;">
+      <h2 style="margin:0;">Recibo para el cliente</h2>
+      <button class="btn btn-secondary" style="padding:7px 14px;font-size:13px;" onclick="cerrarModalRecibo()">✕ Cerrar</button>
+    </div>
+
+    <div id="recibo-selector-persona" style="display:none;margin-bottom:14px;">
+      <div class="fg">
+        <label>¿Para quién es el recibo?</label>
+        <select id="recibo-persona-select" onchange="generarReciboParaPersonaSeleccionada()"></select>
+      </div>
+    </div>
+
+    <div id="recibo-contenido" style="background:#ffffff;color:#111111;padding:18px;border:1px solid var(--border);border-radius:6px;white-space:pre-wrap;font-family:-apple-system,sans-serif;font-size:14px;line-height:1.6;min-height:120px;"></div>
+
+    <div class="btn-row" style="margin-top:14px;">
+      <button class="btn btn-primary" onclick="copiarReciboTexto()">📋 Copiar texto</button>
+      <button class="btn" style="background:#25d366;color:#ffffff;border:1px solid #25d366;" onclick="enviarReciboWhatsapp()">📱 WhatsApp</button>
+    </div>
   </div>
 </div>
 
@@ -1377,7 +1405,7 @@ function renderPedidos() {
             <button class="btn-detail btn-add-product" onclick="toggleInlineAdd('${sid}',true)">＋ Producto</button>
             <button class="btn-detail btn-entregado" onclick="marcarEntregado('${p.id}')">✓ Entregado</button>
             <button class="btn-detail btn-del" onclick="eliminarPedido('${p.id}')">🗑 Borrar</button>
-            <button class="btn-detail btn-secondary" onclick="generarWordPedido('${p.id}')" title="Descargar Word directamente">📄⬇️ Word</button><button class="btn-detail btn-secondary" onclick="abrirEditorWord('${p.id}')" title="Ver y editar antes de descargar">📄✏️ Editar Word/PDF</button>
+            <button class="btn-detail btn-secondary" onclick="generarWordPedido('${p.id}')" title="Descargar Word directamente">📄⬇️ Word</button><button class="btn-detail btn-secondary" onclick="abrirEditorWord('${p.id}')" title="Ver y editar antes de descargar">📄✏️ Editar Word/PDF</button><button class="btn-detail btn-secondary" onclick="abrirRecibo('${p.id}')" title="Generar recibo para el cliente">🧾 Recibo</button>
             ${(p.notas||"").split("\n").filter(x=>x.trim()).map(n=>`<span class="tracking-num" onclick="copiarTracking(this.textContent.replace(' 📋','').trim(),event)" title="Click para copiar">${san(n.trim())}</span>`).join("")}
           </div>
           <button class="btn-detail btn-secondary" style="font-size:11px;padding:4px 10px;" onclick="togglePagoCol(this)">👁 Mostrar Pago</button>
@@ -1399,7 +1427,7 @@ function renderPedidos() {
           <button class="btn-detail btn-add-product" onclick="toggleInlineAdd('${sid}')">＋ Producto</button>
           <button class="btn-detail btn-entregado" onclick="marcarEntregado('${p.id}')">✓ Entregado</button>
           <button class="btn-detail btn-del" onclick="eliminarPedido('${p.id}')">🗑 Borrar</button>
-          <button class="btn-detail btn-secondary" onclick="generarWordPedido('${p.id}')" title="Descargar Word directamente">📄⬇️ Word</button><button class="btn-detail btn-secondary" onclick="abrirEditorWord('${p.id}')" title="Ver y editar antes de descargar">📄✏️ Editar Word/PDF</button>
+          <button class="btn-detail btn-secondary" onclick="generarWordPedido('${p.id}')" title="Descargar Word directamente">📄⬇️ Word</button><button class="btn-detail btn-secondary" onclick="abrirEditorWord('${p.id}')" title="Ver y editar antes de descargar">📄✏️ Editar Word/PDF</button><button class="btn-detail btn-secondary" onclick="abrirRecibo('${p.id}')" title="Generar recibo para el cliente">🧾 Recibo</button>
           <div class="tracking-area" style="flex-wrap:wrap;">
             <div id="tracking-nums-${sid}" style="display:flex;flex-wrap:wrap;gap:4px;">${(p.notas||"").split("\n").filter(x=>x.trim()).map(n=>`<span class="tracking-num" onclick="copiarTracking(this.textContent.replace(' 📋','').trim(),event)" title="Click para copiar">${san(n.trim())}</span>`).join("")}</div>
             <div class="tracking-input-wrap" id="ti-${sid}">
@@ -1879,6 +1907,47 @@ function renderResumen() {
     <div class="bar-wrap"><div class="bar-val">${counts[i]}</div>
     <div class="bar" style="height:${Math.round((counts[i]/maxC)*60)+4}px"></div>
     <div class="bar-label">${vv}</div></div>`).join("");
+
+  renderGraficoMensual();
+}
+
+// Ingresos por mes: mismo criterio de "facturado" que las tarjetas de arriba
+// (por producto en conjunto, por pedido completo en simple), agrupado por mes.
+function renderGraficoMensual() {
+  const cont = document.getElementById("chart-mensual");
+  if (!cont) return;
+
+  const totalesPorMes = {};
+  pedidos.forEach(p => {
+    const mes = (p.fecha||"").slice(0,7); // "aaaa-mm"
+    if (!/^\d{4}-\d{2}$/.test(mes)) return;
+    const tipo = p.tipo||"simple";
+    if (tipo === "conjunto") {
+      (p._items||[]).forEach(it => {
+        if (esSi(it.pagado_item)) totalesPorMes[mes] = (totalesPorMes[mes]||0) + (parseFloat(it.precio_venta)||0);
+      });
+    } else {
+      if (isPagado(p)) totalesPorMes[mes] = (totalesPorMes[mes]||0) + (parseFloat(p.precio_total)||0);
+    }
+  });
+
+  const meses = Object.keys(totalesPorMes).sort();
+  if (!meses.length) {
+    cont.innerHTML = `<div class="empty" style="padding:20px;"><div class="icon">📈</div>Aún no hay datos suficientes</div>`;
+    return;
+  }
+
+  const NOMBRES_MES = ["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"];
+  const maxValor = Math.max(...meses.map(m=>totalesPorMes[m]), 1);
+
+  cont.innerHTML = meses.map(mes => {
+    const [anio, mesNum] = mes.split("-");
+    const valor = totalesPorMes[mes];
+    const etiqueta = NOMBRES_MES[parseInt(mesNum,10)-1] + " " + anio.slice(2);
+    return `<div class="bar-wrap"><div class="bar-val">${valor.toFixed(0)}€</div>
+      <div class="bar" style="height:${Math.round((valor/maxValor)*60)+4}px"></div>
+      <div class="bar-label">${etiqueta}</div></div>`;
+  }).join("");
 }
 
 function showSection(id,btn) {
@@ -2688,6 +2757,107 @@ async function abrirEditorWord(pedidoId) {
 
 function cerrarEditorWord() {
   document.getElementById("modal-word-editor").classList.remove("open");
+}
+
+// ── RECIBO PARA EL CLIENTE (resumen limpio para enviar por WhatsApp) ──
+let reciboPedidoActual = null;
+let reciboTextoActual = "";
+let reciboNombreClienteActual = "";
+
+function abrirRecibo(pedidoId) {
+  const p = pedidos.find(x=>x.id===pedidoId);
+  if (!p) { showToast("No se encontró el pedido"); return; }
+  const tipo = p.tipo||"simple";
+  reciboPedidoActual = pedidoId;
+
+  const selectorWrap = document.getElementById("recibo-selector-persona");
+
+  if (tipo === "conjunto") {
+    const personas = [...new Set((p._items||[]).map(it=>(it.nombre_persona||"").trim()).filter(Boolean))];
+    if (!personas.length) { showToast("Este pedido no tiene personas asignadas"); return; }
+    const sel = document.getElementById("recibo-persona-select");
+    sel.innerHTML = personas.map(nombre => `<option value="${san(nombre)}">${san(nombre)}</option>`).join("");
+    selectorWrap.style.display = "block";
+    construirYMostrarRecibo(pedidoId, personas[0]);
+  } else {
+    selectorWrap.style.display = "none";
+    construirYMostrarRecibo(pedidoId, null);
+  }
+
+  document.getElementById("modal-recibo").classList.add("open");
+}
+
+function generarReciboParaPersonaSeleccionada() {
+  const persona = document.getElementById("recibo-persona-select").value;
+  construirYMostrarRecibo(reciboPedidoActual, persona);
+}
+
+function construirYMostrarRecibo(pedidoId, personaFiltro) {
+  const p = pedidos.find(x=>x.id===pedidoId);
+  if (!p) return;
+  const tipo = p.tipo||"simple";
+  let items = p._items||[];
+  let nombreCliente = p.nombre_cliente||"Cliente";
+  let total = parseFloat(p.precio_total)||0;
+  let pagado = isPagado(p);
+
+  if (tipo === "conjunto" && personaFiltro) {
+    const clave = normNombre(personaFiltro);
+    items = items.filter(it => normNombre(it.nombre_persona||"") === clave);
+    nombreCliente = personaFiltro;
+    total = items.reduce((s,it)=>s+(parseFloat(it.precio_venta)||0),0);
+    pagado = items.length>0 && items.every(it=>esSi(it.pagado_item));
+  }
+
+  const lineasProductos = items.map(it => {
+    let linea = "• " + (it.item||"Producto");
+    const detalles = [it.version, it.talla?("Talla "+it.talla):"", it.nombre_numero].filter(Boolean).join(" · ");
+    if (detalles) linea += " (" + detalles + ")";
+    linea += "  —  " + (parseFloat(it.precio_venta)||0).toFixed(2) + " €";
+    return linea;
+  }).join("\n");
+
+  const seguimiento = (p.notas||"").split("\n").map(s=>s.trim()).filter(Boolean);
+
+  let texto = "🧾 " + nombreCliente + "\n";
+  texto += "📅 " + formatFecha(p.fecha) + "\n\n";
+  texto += (lineasProductos || "(sin productos)") + "\n\n";
+  texto += "💰 Total: " + total.toFixed(2) + " €\n";
+  texto += (pagado ? "✅ Pagado" : "🔶 Pendiente de pago") + "\n";
+  if (seguimiento.length) texto += "📦 Seguimiento: " + seguimiento.join(", ") + "\n";
+  texto += "\n¡Gracias por tu compra! ⚽";
+
+  reciboTextoActual = texto;
+  reciboNombreClienteActual = nombreCliente;
+  document.getElementById("recibo-contenido").textContent = texto;
+}
+
+function cerrarModalRecibo() {
+  document.getElementById("modal-recibo").classList.remove("open");
+}
+
+function copiarReciboTexto() {
+  navigator.clipboard.writeText(reciboTextoActual).then(()=>{
+    showToast("Texto del recibo copiado ✓");
+  }).catch(()=>{
+    const ta = document.createElement("textarea");
+    ta.value = reciboTextoActual; ta.style.position="fixed"; ta.style.opacity="0";
+    document.body.appendChild(ta); ta.select();
+    document.execCommand("copy");
+    document.body.removeChild(ta);
+    showToast("Texto del recibo copiado ✓");
+  });
+}
+
+function enviarReciboWhatsapp() {
+  const clave = normNombre(reciboNombreClienteActual);
+  const cliente = clientes.find(cl => normNombre(cl.nombre) === clave);
+  const telefono = cliente ? (cliente.telefono||"").replace(/[^0-9+]/g,"") : "";
+  const mensaje = encodeURIComponent(reciboTextoActual);
+  const url = telefono
+    ? "https://wa.me/" + telefono.replace(/^\+/,"") + "?text=" + mensaje
+    : "https://wa.me/?text=" + mensaje;
+  window.open(url, "_blank");
 }
 
 function descargarWordDesdeEditor() {
